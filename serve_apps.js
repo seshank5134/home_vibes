@@ -48,7 +48,7 @@ function createStaticServer(rootFolder, port, name) {
   });
 
   server.listen(port, () => {
-    console.log(`🚀 ${name} running at http://localhost:${port}/`);
+    console.log(`[HomeVibes] ${name} running at http://localhost:${port}/`);
   });
 
   return server;
@@ -56,6 +56,9 @@ function createStaticServer(rootFolder, port, name) {
 
 const customerRoot = path.join(__dirname, 'customer-web');
 const adminRoot = path.join(__dirname, 'admin-web');
+const portalRoot = __dirname;
 
-createStaticServer(customerRoot, 3000, 'HomeVibes Customer Web');
-createStaticServer(adminRoot, 3001, 'HomeVibes Admin Web');
+createStaticServer(customerRoot, 3000, 'Customer Web App');
+createStaticServer(adminRoot, 3001, 'Admin Operations Console');
+createStaticServer(portalRoot, 8080, 'Unified Platform Portal');
+
