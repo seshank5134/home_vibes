@@ -60,6 +60,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const selectNextStatus = document.getElementById("selectNextStatus");
   const adminToastContainer = document.getElementById("adminToastContainer");
 
+  // Add Food Modal Elements
+  const btnOpenAddFoodModal = document.getElementById("btnOpenAddFoodModal");
+  const addFoodModal = document.getElementById("addFoodModal");
+  const closeAddFoodModal = document.getElementById("closeAddFoodModal");
+  const cancelAddFoodBtn = document.getElementById("cancelAddFoodBtn");
+  const addFoodForm = document.getElementById("addFoodForm");
+  const foodCategorySelect = document.getElementById("foodCategorySelect");
+  const foodNameInput = document.getElementById("foodNameInput");
+  const foodPriceInput = document.getElementById("foodPriceInput");
+  const foodCookTime = document.getElementById("foodCookTime");
+  const foodServings = document.getElementById("foodServings");
+  const foodSpiceLevel = document.getElementById("foodSpiceLevel");
+  const foodDescription = document.getElementById("foodDescription");
+  const foodImageUrl = document.getElementById("foodImageUrl");
+  const foodIngredients = document.getElementById("foodIngredients");
+
   // Admin Auth Gate Elements
   const adminAuthModal = document.getElementById("adminAuthModal");
   const adminLoginForm = document.getElementById("adminLoginForm");
@@ -465,6 +481,84 @@ document.addEventListener("DOMContentLoaded", () => {
         await loadOrders();
         await refreshDashboard();
         showAdminToast(`Simulated new incoming order #${sampleOrder.order_number}`);
+      });
+    }
+
+    // Add Meal Kit Modal Handlers
+    if (btnOpenAddFoodModal) {
+      btnOpenAddFoodModal.addEventListener("click", async () => {
+        try {
+          const categories = await window.adminDataService.getCategories();
+          if (foodCategorySelect) {
+            foodCategorySelect.innerHTML = (categories || []).map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+          }
+          if (addFoodModal) {
+            addFoodModal.classList.add("open");
+          }
+        } catch (e) {
+          console.warn("[Admin] Open add food modal:", e.message);
+        }
+      });
+    }
+
+    if (closeAddFoodModal) {
+      closeAddFoodModal.addEventListener("click", () => addFoodModal && addFoodModal.classList.remove("open"));
+    }
+    if (cancelAddFoodBtn) {
+      cancelAddFoodBtn.addEventListener("click", () => addFoodModal && addFoodModal.classList.remove("open"));
+    }
+
+    if (addFoodForm) {
+      addFoodForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById("saveFoodBtn");
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Saving to Catalogue...";
+        }
+
+        try {
+          const name = foodNameInput.value.trim();
+          const category_id = foodCategorySelect.value;
+          const price = Number(foodPriceInput.value);
+          const cook_time_minutes = Number(foodCookTime.value) || 20;
+          const servings = Number(foodServings.value) || 2;
+          const spice_level = foodSpiceLevel.value;
+          const description = foodDescription.value.trim();
+          const image_url = (foodImageUrl.value.trim()) || "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600&auto=format&fit=crop&q=80";
+          const rawIngredientsText = foodIngredients.value.trim();
+          const raw_ingredients = rawIngredientsText ? rawIngredientsText.split(",").map(s => s.trim()).filter(Boolean) : [];
+
+          const newFoodItem = {
+            name,
+            category_id,
+            price,
+            cook_time_minutes,
+            servings,
+            spice_level,
+            description,
+            image_url,
+            raw_ingredients,
+            is_available: true,
+            is_featured: false,
+            rating: 5.0,
+            rating_count: 1
+          };
+
+          await window.adminDataService.saveFoodItem(newFoodItem);
+          addFoodModal.classList.remove("open");
+          addFoodForm.reset();
+          await loadFoodInventory();
+          await refreshDashboard();
+          showAdminToast(`Successfully added "${name}" to Meal Kits catalogue!`);
+        } catch (err) {
+          alert("Error saving meal kit: " + err.message);
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Save Meal Kit";
+          }
+        }
       });
     }
   }

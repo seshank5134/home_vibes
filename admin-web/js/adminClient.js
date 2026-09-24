@@ -119,28 +119,59 @@ class AdminDataService {
   // ============================================================================
   async getDashboardMetrics() {
     if (this.isCloud && this.client) {
-      const { count: totalOrders } = await this.client.from("orders").select("*", { count: "exact", head: true });
-      const { count: activeOrders } = await this.client
-        .from("orders")
-        .select("*", { count: "exact", head: true })
-        .not("status", "in", '("delivered","cancelled")');
-      const { count: completedOrders } = await this.client.from("orders").select("*", { count: "exact", head: true }).eq("status", "delivered");
-      const { count: onlineDrivers } = await this.client.from("drivers").select("*", { count: "exact", head: true }).eq("is_online", true);
-      const { count: totalCustomers } = await this.client.from("profiles").select("*", { count: "exact", head: true }).eq("role", "CUSTOMER");
-      const { count: totalFoodItems } = await this.client.from("food_items").select("*", { count: "exact", head: true });
+      try {
+        const { count: totalOrders } = await this.client.from("orders").select("*", { count: "exact", head: true });
+        
+        // Active orders: PLACED, CONFIRMED, PREPARING, READY_FOR_PICKUP, DRIVER_ASSIGNED, PICKED_UP, OUT_FOR_DELIVERY
+        const { count: activeOrders } = await this.client
+          .from("orders")
+          .select("*", { count: "exact", head: true })
+          .not("status", "in", '("DELIVERED","CANCELLED","delivered","cancelled")');
+          
+        const { count: completedOrders } = await this.client
+          .from("orders")
+          .select("*", { count: "exact", head: true })
+          .or("status.eq.DELIVERED,status.eq.delivered");
+          
+        const { count: onlineDrivers } = await this.client
+          .from("drivers")
+          .select("*", { count: "exact", head: true })
+          .eq("is_online", true);
+          
+        const { count: totalCustomers } = await this.client
+          .from("profiles")
+          .select("*", { count: "exact", head: true })
+          .or("role.eq.CUSTOMER,role.eq.customer");
+          
+        const { count: totalFoodItems } = await this.client
+          .from("food_items")
+          .select("*", { count: "exact", head: true });
 
-      const { data: revData } = await this.client.from("orders").select("total_amount").eq("status", "delivered");
-      const revenue = (revData || []).reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+        const { data: revData } = await this.client
+          .from("orders")
+          .select("total_amount")
+          .or("status.eq.DELIVERED,status.eq.delivered");
+          
+        const cloudRevenue = (revData || []).reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
 
-      return {
-        totalOrders: totalOrders || 0,
-        activeOrders: activeOrders || 0,
-        completedOrders: completedOrders || 0,
-        onlineDrivers: onlineDrivers || 0,
-        totalCustomers: totalCustomers || 0,
-        totalFoodItems: totalFoodItems || 0,
-        revenue: revenue || 0
-      };
+        // Include any offline mock orders as well
+        const localOrders = JSON.parse(localStorage.getItem("HOMEVIBES_MOCK_ORDERS") || "[]");
+        const localRevenue = localOrders
+          .filter(o => (o.status || "").toLowerCase() === "delivered")
+          .reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+
+        return {
+          totalOrders: Math.max(totalOrders || 0, localOrders.length),
+          activeOrders: activeOrders || 0,
+          completedOrders: completedOrders || 0,
+          onlineDrivers: onlineDrivers || 0,
+          totalCustomers: totalCustomers || 0,
+          totalFoodItems: totalFoodItems || 0,
+          revenue: cloudRevenue + localRevenue
+        };
+      } catch (err) {
+        console.warn("[Admin] getDashboardMetrics exception:", err.message);
+      }
     }
 
     // Mock Metrics in INR
@@ -174,7 +205,7 @@ class AdminDataService {
         .order("created_at", { ascending: false });
 
       if (statusFilter && statusFilter !== "ALL") {
-        query = query.eq("status", statusFilter.toLowerCase());
+        query = query.or(`status.eq.${statusFilter.toUpperCase()},status.eq.${statusFilter.toLowerCase()}`);
       }
 
       const { data, error } = await query;
@@ -241,10 +272,11 @@ class AdminDataService {
   }
 
   async updateOrderStatus(orderId, newStatus) {
+    const formattedStatus = (newStatus || "").toUpperCase();
     if (this.isCloud && this.client) {
       const { data, error } = await this.client
         .from("orders")
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .update({ status: formattedStatus, updated_at: new Date().toISOString() })
         .eq("id", orderId)
         .select()
         .single();
@@ -256,10 +288,10 @@ class AdminDataService {
     const extra = JSON.parse(localStorage.getItem("HOMEVIBES_MOCK_ORDERS") || "[]");
     const item = extra.find(o => o.id === orderId);
     if (item) {
-      item.status = newStatus;
+      item.status = formattedStatus;
       localStorage.setItem("HOMEVIBES_MOCK_ORDERS", JSON.stringify(extra));
     }
-    return { id: orderId, status: newStatus };
+    return { id: orderId, status: formattedStatus };
   }
 
   async assignDriver(orderId, driverId) {
@@ -339,6 +371,22 @@ class AdminDataService {
   // ============================================================================
   // FOOD CATALOGUE MANAGEMENT
   // ============================================================================
+  async getCategories() {
+    if (this.isCloud && this.client) {
+      try {
+        const { data, error } = await this.client
+          .from("categories")
+          .select("*")
+          .eq("is_active", true)
+          .order("display_order", { ascending: true });
+        if (!error && data && data.length > 0) return data;
+      } catch (e) {
+        console.warn("[Admin] getCategories notice:", e.message);
+      }
+    }
+    return window.HOMEVIBES_MOCK_DATA ? window.HOMEVIBES_MOCK_DATA.categories : [];
+  }
+
   async getFoodItems() {
     if (this.isCloud && this.client) {
       const { data, error } = await this.client

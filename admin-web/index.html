@@ -111,7 +111,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               </div>
             </div>
-            <div class="metric-card-val" id="metricRevenue">&#8377;18,450</div>
+            <div class="metric-card-val" id="metricRevenue">&#8377;--</div>
             <div class="metric-card-sub">Sum of fulfilled kit orders</div>
           </div>
 
@@ -122,7 +122,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>
             </div>
-            <div class="metric-card-val" id="metricActiveOrders">3</div>
+            <div class="metric-card-val" id="metricActiveOrders">--</div>
             <div class="metric-card-sub">In packaging & in transit</div>
           </div>
 
@@ -133,7 +133,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 12 8"/></svg>
               </div>
             </div>
-            <div class="metric-card-val" id="metricOnlineDrivers">2</div>
+            <div class="metric-card-val" id="metricOnlineDrivers">--</div>
             <div class="metric-card-sub">Ready for instant dispatch</div>
           </div>
 
@@ -144,7 +144,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
               </div>
             </div>
-            <div class="metric-card-val" id="metricCustomers">24</div>
+            <div class="metric-card-val" id="metricCustomers">--</div>
             <div class="metric-card-sub">Bengaluru region accounts</div>
           </div>
         </div>
@@ -361,12 +361,13 @@
         <div class="form-group">
           <label class="form-label" for="selectNextStatus">Next State Machine Status</label>
           <select id="selectNextStatus" class="form-select">
-            <option value="confirmed">Confirmed (Accept Order)</option>
-            <option value="preparing">Preparing (Kit Packaging)</option>
-            <option value="picked_up">Picked Up (Driver En Route)</option>
-            <option value="out_for_delivery">Out for Delivery (Near Customer)</option>
-            <option value="delivered">Delivered (Completed)</option>
-            <option value="cancelled">Cancelled (Halt Order)</option>
+            <option value="CONFIRMED">Confirmed (Accept Order)</option>
+            <option value="PREPARING">Preparing (Kit Packaging)</option>
+            <option value="READY_FOR_PICKUP">Ready for Pickup (Kitchen Complete)</option>
+            <option value="PICKED_UP">Picked Up (Driver En Route)</option>
+            <option value="OUT_FOR_DELIVERY">Out for Delivery (Near Customer)</option>
+            <option value="DELIVERED">Delivered (Completed)</option>
+            <option value="CANCELLED">Cancelled (Halt Order)</option>
           </select>
         </div>
       </div>
@@ -375,6 +376,79 @@
         <button class="btn btn-secondary" id="cancelStatusBtn">Cancel</button>
         <button class="btn btn-primary" id="confirmStatusBtn">Apply State Change</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       ADD MEAL KIT & RAW MATERIALS MODAL
+       ============================================================================ -->
+  <div class="modal-overlay" id="addFoodModal">
+    <div class="modal-box" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3 style="font-size: 1.05rem; font-weight: 700;">+ Add New Meal Kit to Catalogue</h3>
+        <button class="btn btn-secondary btn-sm" id="closeAddFoodModal">&times;</button>
+      </div>
+
+      <form id="addFoodForm">
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px; max-height: 65vh; overflow-y: auto;">
+          <div class="form-group">
+            <label class="form-label" for="foodNameInput">Meal Kit Name *</label>
+            <input type="text" id="foodNameInput" class="form-input" placeholder="e.g. Kashmiri Rogan Josh Kit" required style="width: 100%;">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label" for="foodCategorySelect">Category *</label>
+              <select id="foodCategorySelect" class="form-select" required style="width: 100%;">
+                <!-- Populated dynamically via admin.js -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="foodPriceInput">Kit Price (&#8377;) *</label>
+              <input type="number" id="foodPriceInput" class="form-input" min="1" step="1" placeholder="299" required style="width: 100%;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label" for="foodCookTime">Cook Time (mins)</label>
+              <input type="number" id="foodCookTime" class="form-input" min="5" value="20" style="width: 100%;">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="foodServings">Servings</label>
+              <input type="number" id="foodServings" class="form-input" min="1" value="2" style="width: 100%;">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="foodSpiceLevel">Spice Level</label>
+              <select id="foodSpiceLevel" class="form-select" style="width: 100%;">
+                <option value="Mild">Mild</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="foodDescription">Description *</label>
+            <textarea id="foodDescription" class="form-input" rows="2" placeholder="Ingredients and culinary overview..." required style="width: 100%; resize: vertical;"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="foodImageUrl">Image URL (optional)</label>
+            <input type="url" id="foodImageUrl" class="form-input" placeholder="https://images.unsplash.com/..." style="width: 100%;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="foodIngredients">Raw Ingredients (comma separated)</label>
+            <textarea id="foodIngredients" class="form-input" rows="2" placeholder="e.g. 300g Marinated Meat, 50ml Onion Gravy, Whole Spices, Desi Ghee" style="width: 100%; resize: vertical;"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancelAddFoodBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveFoodBtn">Save Meal Kit</button>
+        </div>
+      </form>
     </div>
   </div>
 
