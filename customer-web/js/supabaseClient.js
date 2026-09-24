@@ -1,4 +1,4 @@
-/**
+﻿/**
  * HomeVibes Customer Web - Supabase Client & Data Access Layer
  * Handles authentication, queries, orders, and real-time WebSocket subscriptions.
  * Features an integrated Mock Fallback Adapter for zero-friction local testing.
@@ -297,76 +297,85 @@ class HomeVibesDataService {
   // ============================================================================
   async createOrder({ items, subtotal, deliveryFee, totalAmount, deliveryAddress, deliveryLat, deliveryLng, paymentMethod, notes }) {
     const orderNumber = "HV-" + Math.floor(100000 + Math.random() * 900000);
-    const customerId = this.currentUser ? this.currentUser.id : "c3333333-cccc-3333-cccc-333333333333";
+
+    // Determine best customer ID: auth UID > local signed-in > guest UUID
+    const GUEST_UUID = "c3333333-cccc-3333-cccc-333333333333";
+    let customerId = GUEST_UUID;
 
     if (this.isCloud && this.client) {
       try {
         const { data: sessionData } = await this.client.auth.getSession();
-        const activeUid = sessionData?.session?.user?.id;
-        const validCustomerId = activeUid || (this.currentUser?.id && !this.currentUser.id.startsWith("cust-") ? this.currentUser.id : null);
-
-        if (validCustomerId) {
-          const { data: order, error: orderErr } = await this.client
-            .from("orders")
-            .insert([{
-              order_number: orderNumber,
-              customer_id: validCustomerId,
-              status: "PLACED",
-              subtotal: Number(subtotal.toFixed(2)),
-              delivery_fee: Number(deliveryFee.toFixed(2)),
-              total_amount: Number(totalAmount.toFixed(2)),
-              delivery_address: deliveryAddress,
-              delivery_latitude: deliveryLat,
-              delivery_longitude: deliveryLng,
-              payment_method: paymentMethod,
-              payment_status: paymentMethod === "ONLINE_MOCK" ? "PAID" : "PENDING",
-              delivery_notes: notes || ""
-            }])
-            .select()
-            .single();
-
-          if (!orderErr && order) {
-            const orderItemsToInsert = items.map(item => ({
-              order_id: order.id,
-              food_id: item.id,
-              quantity: item.quantity,
-              unit_price: Number(item.price.toFixed(2)),
-              total_price: Number((item.price * item.quantity).toFixed(2))
-            }));
-
-            await this.client.from("order_items").insert(orderItemsToInsert);
-            return order;
-          }
-          console.warn("[Orders] Cloud insert error note:", orderErr?.message);
+        const authUid = sessionData?.session?.user?.id;
+        if (authUid) {
+          customerId = authUid;
+        } else if (this.currentUser && this.currentUser.id && !this.currentUser.id.startsWith("cust-")) {
+          customerId = this.currentUser.id;
         }
-      } catch (cloudErr) {
-        console.warn("[Orders] Cloud order creation fallback:", cloudErr.message);
+      } catch (e) {
+        console.warn("[Orders] Session resolve:", e.message);
       }
+    } else if (this.currentUser && this.currentUser.id && !this.currentUser.id.startsWith("cust-")) {
+      customerId = this.currentUser.id;
     }
 
-    // Local Mock Order
-    const mockOrder = {
-      id: "ord-" + Date.now(),
+    const orderPayload = {
       order_number: orderNumber,
       customer_id: customerId,
       status: "PLACED",
-      subtotal,
-      delivery_fee: deliveryFee,
-      total_amount: totalAmount,
+      subtotal: Number(subtotal.toFixed(2)),
+      delivery_fee: Number(deliveryFee.toFixed(2)),
+      total_amount: Number(totalAmount.toFixed(2)),
       delivery_address: deliveryAddress,
       delivery_latitude: deliveryLat,
       delivery_longitude: deliveryLng,
       payment_method: paymentMethod,
       payment_status: paymentMethod === "ONLINE_MOCK" ? "PAID" : "PENDING",
-      delivery_notes: notes,
+      delivery_notes: notes || ""
+    };
+
+    // Always try Supabase first (works for auth users and guest UUID)
+    if (this.isCloud && this.client) {
+      try {
+        const { data: order, error: orderErr } = await this.client
+          .from("orders")
+          .insert([orderPayload])
+          .select()
+          .single();
+
+        if (!orderErr && order) {
+          console.log("[Orders] Saved to Supabase:", order.order_number);
+          const lineItems = items.map(item => ({
+            order_id: order.id,
+            food_id: item.id,
+            quantity: item.quantity,
+            unit_price: Number(item.price.toFixed(2)),
+            total_price: Number((item.price * item.quantity).toFixed(2))
+          }));
+          await this.client.from("order_items").insert(lineItems);
+
+          // Mirror to localStorage so My Orders works offline
+          const cached = JSON.parse(localStorage.getItem("HOMEVIBES_MOCK_ORDERS") || "[]");
+          cached.unshift({ ...order, items: items.map(i => ({ ...i, total_price: i.price * i.quantity })) });
+          localStorage.setItem("HOMEVIBES_MOCK_ORDERS", JSON.stringify(cached));
+
+          return order;
+        }
+        console.warn("[Orders] Cloud insert note:", orderErr && orderErr.message, "- local fallback.");
+      } catch (cloudErr) {
+        console.warn("[Orders] Cloud exception:", cloudErr.message, "- local fallback.");
+      }
+    }
+
+    // Offline fallback - localStorage only
+    const mockOrder = {
+      id: "ord-" + Date.now(),
+      ...orderPayload,
       created_at: new Date().toISOString(),
       items: items.map(i => ({ ...i, total_price: i.price * i.quantity }))
     };
-
     const existing = JSON.parse(localStorage.getItem("HOMEVIBES_MOCK_ORDERS") || "[]");
     existing.unshift(mockOrder);
     localStorage.setItem("HOMEVIBES_MOCK_ORDERS", JSON.stringify(existing));
-
     return mockOrder;
   }
 
@@ -478,7 +487,7 @@ class HomeVibesDataService {
   // ============================================================================
   subscribeToOrder(orderId, onStatusChange) {
     if (!this.isCloud || !this.client) {
-      console.log("ℹ️ Realtime: Simulating local state transitions for demo.");
+      console.log("â„¹ï¸ Realtime: Simulating local state transitions for demo.");
       return this.simulateLocalTransitions(orderId, onStatusChange);
     }
 
@@ -493,12 +502,12 @@ class HomeVibesDataService {
           filter: `id=eq.${orderId}`
         },
         payload => {
-          console.log("⚡ Realtime Order Update Received:", payload.new);
+          console.log("âš¡ Realtime Order Update Received:", payload.new);
           if (onStatusChange) onStatusChange(payload.new);
         }
       )
       .subscribe(status => {
-        console.log(`📡 Realtime Channel for order ${orderId}:`, status);
+        console.log(`ðŸ“¡ Realtime Channel for order ${orderId}:`, status);
       });
 
     return () => {
@@ -522,7 +531,7 @@ class HomeVibesDataService {
           filter: `order_id=eq.${orderId}`
         },
         payload => {
-          console.log("📍 Realtime GPS Coordinate Received:", payload.new);
+          console.log("ðŸ“ Realtime GPS Coordinate Received:", payload.new);
           if (onLocationUpdate) onLocationUpdate(payload.new);
         }
       )
@@ -594,3 +603,4 @@ function split_email(e) {
 
 window.dataService = new HomeVibesDataService();
 window.authService = window.dataService;
+
