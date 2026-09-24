@@ -89,6 +89,9 @@
         <button class="btn btn-secondary btn-sm" id="btnSimulateOrder">
           <span>Simulate Incoming Order</span>
         </button>
+        <button class="btn btn-secondary btn-sm" id="btnTopbarAutoDispatch" title="Broadcast cloud dispatch notifications to all nearby drivers within 15 km">
+          <span>Auto-Dispatch All (15km)</span>
+        </button>
         <button class="btn btn-primary btn-sm" id="btnOpenCloudModal">
           <span>Cloud Status</span>
         </button>
@@ -337,6 +340,14 @@
           <select id="selectDriverDropdown" class="form-select">
             <!-- Populated dynamically via admin.js -->
           </select>
+        </div>
+
+        <div style="margin: 14px 0; padding: 12px; background: var(--accent-subtle); border: 1px dashed var(--accent); border-radius: var(--radius-sm);">
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent); margin-bottom: 3px;">Cloud Proximity Auto-Dispatch</div>
+          <div style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 8px;">Trigger automated notification to online drivers within 15 km of the customer delivery address. Driver receives popup to Accept or Reject.</div>
+          <button class="btn btn-secondary btn-sm" id="btnBroadcastDispatch" style="width: 100%; border-color: var(--accent); color: var(--accent); font-weight: 700;">
+            <span>Push 15km Dispatch Notification to Drivers</span>
+          </button>
         </div>
       </div>
 

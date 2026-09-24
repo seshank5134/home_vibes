@@ -273,11 +273,97 @@ class DriverRoutingEngine {
     if (hudTitle) hudTitle.textContent = nextTurn.instruction;
     if (hudDist) hudDist.textContent = `In ${nextTurn.distance}`;
 
-    const totalKm = this.currentMode === "TO_HUB" ? 1.4 : 4.6;
-    const etaMins = this.currentMode === "TO_HUB" ? 6 : 14;
+    const totalKm = this.routeVariant === "DIRECT" ? 3.9 : (this.currentMode === "TO_HUB" ? 1.4 : 4.6);
+    const etaMins = this.routeVariant === "DIRECT" ? 11 : (this.currentMode === "TO_HUB" ? 6 : 14);
 
     if (hudEta) hudEta.textContent = `${etaMins} mins`;
     if (hudTotalDist) hudTotalDist.textContent = `${totalKm} km`;
+  }
+
+  /**
+   * Dynamically reroute according to real-time traffic or road deviation
+   */
+  recalculateDynamicRoute(source = "manual") {
+    if (this.currentMode === "TO_CUSTOMER") {
+      this.routeVariant = (this.routeVariant === "FASTEST") ? "DIRECT" : "FASTEST";
+      if (this.routeVariant === "DIRECT") {
+        this.waypoints = this.generateWaypoints(this.driverPos, this.customerPos, [
+          [12.9360, 77.6350],
+          [12.9320, 77.6520],
+          [12.9295, 77.6650]
+        ]);
+        this.turnInstructions = [
+          {
+            type: "TURN_RIGHT",
+            instruction: "Rerouted: Turn right onto Sarjapur Main Road via bypass",
+            distance: "350 m",
+            time: "1 min"
+          },
+          {
+            type: "STRAIGHT",
+            instruction: "Proceed straight along Bellandur Lake Road (low traffic corridor)",
+            distance: "3.1 km",
+            time: "6 min"
+          },
+          {
+            type: "TURN_LEFT",
+            instruction: "Turn left into Green Glen Layout Gate 2",
+            distance: "400 m",
+            time: "2 min"
+          },
+          {
+            type: "ARRIVED",
+            instruction: `Arrive at Customer: ${this.customerAddress}`,
+            distance: "0 m",
+            time: "Arrival"
+          }
+        ];
+      } else {
+        this.renderRoute();
+        return;
+      }
+    } else {
+      this.waypoints = this.generateWaypoints(this.driverPos, this.hubPos, [
+        [12.9405, 77.6200],
+        [12.9365, 77.6235]
+      ]);
+      this.turnInstructions = [
+        {
+          type: "STRAIGHT",
+          instruction: "Rerouted: Continue on 100 Feet Ring Corridor to 4th Block Hub",
+          distance: "500 m",
+          time: "2 min"
+        },
+        {
+          type: "TURN_LEFT",
+          instruction: "Turn left into Hub Logistics Entry",
+          distance: "200 m",
+          time: "1 min"
+        },
+        {
+          type: "ARRIVED",
+          instruction: "Arrive at Staging Hub Bay B",
+          distance: "0 m",
+          time: "Arrival"
+        }
+      ];
+    }
+
+    if (this.routePolyline && this.map) {
+      this.routePolyline.setLatLngs(this.waypoints);
+      this.routePolyline.setStyle({ color: "#10B981", dashArray: "6, 6" });
+      setTimeout(() => {
+        if (this.routePolyline) {
+          this.routePolyline.setStyle({ color: this.currentMode === "TO_HUB" ? "#2563EB" : "#E85D3F", dashArray: "8, 8" });
+        }
+      }, 1200);
+      try {
+        this.map.fitBounds(this.routePolyline.getBounds(), { padding: [50, 50] });
+      } catch (_) {}
+    }
+
+    this.updateHUD();
+    this.renderStepCards();
   }
 
   renderStepCards() {

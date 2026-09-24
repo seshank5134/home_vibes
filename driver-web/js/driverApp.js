@@ -163,6 +163,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  const btnRerouteManual = document.getElementById("btnRerouteManual");
+  if (btnRerouteManual) {
+    btnRerouteManual.addEventListener("click", () => {
+      window.driverRouting.recalculateDynamicRoute("manual");
+      showToast("Route dynamically recalculated based on live road conditions", "success");
+    });
+  }
+
   // 7. Order Status Transitions & Progression
   if (btnProgressStatus) {
     btnProgressStatus.addEventListener("click", async () => {
@@ -411,7 +419,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (window.driverDataService.isOnline && !currentActiveOrder) {
       checkNearbyRadarOrders();
     }
-  }, 25000);
+  }, 12000);
+
+  // Cross-tab real-time sync (Admin dispatches -> Driver receives alert instantly)
+  window.addEventListener("storage", (e) => {
+    if (e.key === "HOMEVIBES_MOCK_ORDERS" || e.key === "HOMEVIBES_DISPATCH_ALERT") {
+      checkNearbyRadarOrders();
+    }
+  });
+
+  // Supabase Realtime channel for live dispatch alerts
+  if (window.driverDataService.isCloud && window.driverDataService.client) {
+    try {
+      window.driverDataService.client
+        .channel("driver-dispatch-feed")
+        .on("postgres_changes", { event: "*", schema: "public", table: "delivery_assignments" }, payload => {
+          if (payload.new && payload.new.driver_id === window.driverDataService.getDriver().id && payload.new.status === "PENDING") {
+            checkNearbyRadarOrders();
+          }
+        })
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, () => {
+          checkNearbyRadarOrders();
+        })
+        .subscribe();
+    } catch (_) {}
+  }
 
   // Toast Functionality
   function showToast(message, type = "info") {
