@@ -1,10 +1,13 @@
 /**
  * HomeVibes Admin Web - Configuration Manager
+ * Configured with live Supabase Project URL: https://aymdlyhwqtgmaizwqotw.supabase.co
  */
 
 const AppConfig = {
+  DEFAULT_SUPABASE_URL: "https://aymdlyhwqtgmaizwqotw.supabase.co",
+
   DEFAULT_KITCHEN: {
-    name: "HomeVibes Central Kitchen",
+    name: "HomeVibes Central Hub (Bengaluru)",
     lat: 12.9716,
     lng: 77.5946,
     address: "Brigade Road, Central Hub, Bengaluru, KA 560001"
@@ -14,7 +17,7 @@ const AppConfig = {
     if (window.HOMEVIBES_ENV && window.HOMEVIBES_ENV.SUPABASE_URL && !window.HOMEVIBES_ENV.SUPABASE_URL.includes("your-project-ref")) {
       return window.HOMEVIBES_ENV.SUPABASE_URL;
     }
-    return localStorage.getItem("HOMEVIBES_SUPABASE_URL") || "";
+    return localStorage.getItem("HOMEVIBES_SUPABASE_URL") || this.DEFAULT_SUPABASE_URL;
   },
 
   getSupabaseAnonKey() {

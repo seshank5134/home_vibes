@@ -1,6 +1,8 @@
 /**
  * HomeVibes Customer Web — Main Application Controller
  * Handles UI interactions, Cart, Catalog, Map Tracking, and Real-time State.
+ * Currency: Indian Rupee (₹)
+ * Strict Requirement: No emojis, professional product design system
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -28,7 +30,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const navTrackingBtn = document.getElementById("navTrackingBtn");
   const openCloudModalBtn = document.getElementById("openCloudModalBtn");
   const closeCloudModalBtn = document.getElementById("closeCloudModalBtn");
+  const closeCloudModalFooterBtn = document.getElementById("closeCloudModalFooterBtn");
   const cloudArchitectureModal = document.getElementById("cloudArchitectureModal");
+  const tabArchOverview = document.getElementById("tabArchOverview");
+  const tabArchConfig = document.getElementById("tabArchConfig");
+  const archOverviewContent = document.getElementById("archOverviewContent");
+  const archConfigContent = document.getElementById("archConfigContent");
 
   const openCartBtn = document.getElementById("openCartBtn");
   const closeCartBtn = document.getElementById("closeCartBtn");
@@ -43,6 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const checkoutModal = document.getElementById("checkoutModal");
   const closeCheckoutBtn = document.getElementById("closeCheckoutBtn");
+  const cancelCheckoutBtn = document.getElementById("cancelCheckoutBtn");
   const checkoutAddressSelect = document.getElementById("checkoutAddressSelect");
   const checkoutPaymentMethod = document.getElementById("checkoutPaymentMethod");
   const checkoutNotes = document.getElementById("checkoutNotes");
@@ -50,10 +58,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const checkoutGrandTotal = document.getElementById("checkoutGrandTotal");
   const submitOrderBtn = document.getElementById("submitOrderBtn");
 
+  const recipeModal = document.getElementById("recipeModal");
+  const closeRecipeModalBtn = document.getElementById("closeRecipeModalBtn");
+  const recipeModalTitle = document.getElementById("recipeModalTitle");
+  const recipeModalBody = document.getElementById("recipeModalBody");
+  const recipeModalFooter = document.getElementById("recipeModalFooter");
+
   const trackingModal = document.getElementById("trackingModal");
   const closeTrackingBtn = document.getElementById("closeTrackingBtn");
+  const closeTrackingFooterBtn = document.getElementById("closeTrackingFooterBtn");
   const trackingOrderSubtitle = document.getElementById("trackingOrderSubtitle");
   const trackingDriverDesc = document.getElementById("trackingDriverDesc");
+  const trackingDriverName = document.getElementById("trackingDriverName");
+  const trackingDriverAvatar = document.getElementById("trackingDriverAvatar");
   const simulateDriverMovementBtn = document.getElementById("simulateDriverMovementBtn");
   const openReviewBtn = document.getElementById("openReviewBtn");
 
@@ -82,7 +99,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchSubmitBtn = document.getElementById("searchSubmitBtn");
   const toastContainer = document.getElementById("toastContainer");
 
-  // Cloud Config inputs in modal
   const cfgSupabaseUrl = document.getElementById("cfgSupabaseUrl");
   const cfgSupabaseKey = document.getElementById("cfgSupabaseKey");
   const saveCloudConfigBtn = document.getElementById("saveCloudConfigBtn");
@@ -94,20 +110,18 @@ document.addEventListener("DOMContentLoaded", () => {
     updateAuthUI();
     renderCart();
 
-    // Populate cloud config fields in modal
     if (cfgSupabaseUrl && cfgSupabaseKey && window.AppConfig) {
       cfgSupabaseUrl.value = window.AppConfig.getSupabaseUrl();
       cfgSupabaseKey.value = window.AppConfig.getSupabaseAnonKey();
     }
 
     try {
-      // Load Categories & Food Items
       AppState.categories = await window.dataService.getCategories();
       renderCategoryPills();
       await loadFoodItems();
     } catch (err) {
       console.error("Error initializing catalogue:", err);
-      showToast("Unable to load menu catalogue. Using fallback data.", "warning");
+      showToast("Unable to reach cloud catalogue. Loaded local cached recipes.", "warning");
     }
 
     setupEventListeners();
@@ -119,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderCategoryPills() {
     categoryPillsContainer.innerHTML = `
       <div class="category-chip ${AppState.selectedCategoryId === 'ALL' ? 'active' : ''}" data-category-id="ALL">
-        <span>✨</span> All Delicacies
+        All Kits
       </div>
     `;
 
@@ -127,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const chip = document.createElement("div");
       chip.className = `category-chip ${AppState.selectedCategoryId === cat.id ? 'active' : ''}`;
       chip.dataset.categoryId = cat.id;
-      chip.innerHTML = `<span>🍽️</span> ${cat.name}`;
+      chip.textContent = cat.name;
       chip.addEventListener("click", () => {
         document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
         chip.classList.add("active");
@@ -137,7 +151,6 @@ document.addEventListener("DOMContentLoaded", () => {
       categoryPillsContainer.appendChild(chip);
     });
 
-    // Add click handler to ALL chip
     categoryPillsContainer.firstElementChild.addEventListener("click", () => {
       document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
       categoryPillsContainer.firstElementChild.classList.add("active");
@@ -148,9 +161,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function loadFoodItems() {
     foodGridContainer.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">
-        <div class="pulse-dot" style="margin: 0 auto 1rem; width: 14px; height: 14px;"></div>
-        Loading gourmet menu items...
+      <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-secondary);">
+        Loading meal kits catalogue...
       </div>
     `;
 
@@ -170,47 +182,168 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderFoodGrid() {
     if (!AppState.foodItems || AppState.foodItems.length === 0) {
       foodGridContainer.innerHTML = `
-        <div style="grid-column: 1/-1; text-align: center; padding: 4rem 1rem; color: var(--text-dim);">
-          <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
-          <h3>No delicacies found matching your search.</h3>
-          <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">Try selecting another category or clear your search query.</p>
+        <div style="grid-column: 1/-1; text-align: center; padding: 4rem 1rem; color: var(--text-secondary);">
+          <h3 style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.5rem;">No meal kits found matching your search.</h3>
+          <p style="font-size: 0.85rem;">Try selecting another category or clear your search query.</p>
         </div>
       `;
       itemCountLabel.textContent = "0 items";
       return;
     }
 
-    itemCountLabel.textContent = `Showing ${AppState.foodItems.length} items`;
+    itemCountLabel.textContent = `Showing ${AppState.foodItems.length} meal kits`;
     foodGridContainer.innerHTML = "";
 
     AppState.foodItems.forEach(item => {
+      const isVeg = item.name.toLowerCase().includes("paneer") || 
+                    item.name.toLowerCase().includes("dal") || 
+                    item.name.toLowerCase().includes("chole") || 
+                    item.name.toLowerCase().includes("naan") || 
+                    item.name.toLowerCase().includes("jamun");
+
       const card = document.createElement("div");
       card.className = "food-card";
       card.innerHTML = `
         <div class="food-img-container">
           <img src="${item.image_url}" alt="${item.name}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600'">
-          ${item.is_featured ? `<span class="card-badge">★ Chef's Choice</span>` : ''}
-          <span class="prep-badge">⏱️ ${item.prep_time_minutes || 20}m</span>
+          <div class="card-badges">
+            <span class="tag-badge ${isVeg ? 'veg' : ''}">${isVeg ? 'Vegetarian' : 'Non-Veg'}</span>
+            ${item.spice_level ? `<span class="tag-badge spice">${item.spice_level} Spice</span>` : ''}
+          </div>
         </div>
         <div class="food-card-body">
+          <div class="food-meta-row">
+            <span class="food-meta-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ${item.cook_time_minutes || 20} min cook
+            </span>
+            <span class="food-meta-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              ${item.servings || 2} Servings
+            </span>
+          </div>
           <h3 class="food-title">${item.name}</h3>
           <p class="food-desc">${item.description}</p>
           <div class="food-footer">
-            <div class="food-price">$${Number(item.price).toFixed(2)}</div>
-            <button class="add-cart-btn" data-food-id="${item.id}">
-              <span>+ Add</span>
-            </button>
+            <div class="food-price-wrap">
+              <span class="food-price-label">Kit Price</span>
+              <span class="food-price">&#8377;${Number(item.price).toFixed(0)}</span>
+            </div>
+            <div class="card-actions">
+              <button class="btn-recipe" data-recipe-id="${item.id}">View Recipe</button>
+              <button class="btn-add" data-add-id="${item.id}">+ Add</button>
+            </div>
           </div>
         </div>
       `;
 
-      card.querySelector(".add-cart-btn").addEventListener("click", (e) => {
+      card.querySelector(".btn-recipe").addEventListener("click", () => {
+        openRecipeModal(item);
+      });
+
+      card.querySelector(".btn-add").addEventListener("click", (e) => {
         e.stopPropagation();
         addToCart(item);
       });
 
       foodGridContainer.appendChild(card);
     });
+  }
+
+  // ============================================================================
+  // RECIPE & COOKING SCRIPT MODAL
+  // ============================================================================
+  function openRecipeModal(item) {
+    recipeModalTitle.textContent = item.name;
+
+    const rawList = Array.isArray(item.raw_ingredients) ? item.raw_ingredients : [
+      "Sealed protein / vegetable portion",
+      "Signature slow-simmered gravy base",
+      "Pre-measured whole spice pouch",
+      "Cold-pressed oil or desi ghee"
+    ];
+
+    const scriptList = Array.isArray(item.cooking_script) ? item.cooking_script : [
+      { step: 1, title: "Heat & Temper Spices", instruction: "Add oil or ghee to a heavy-bottomed pan on medium flame. Add whole spices and sauté for 30 seconds." },
+      { step: 2, title: "Add Fresh Ingredients", instruction: "Add the pre-cut protein or vegetables. Sauté for 4-5 minutes until sealed." },
+      { step: 3, title: "Simmer in Gravy Base", instruction: "Pour in the artisanal gravy base with 50ml water. Cover and simmer for 8 minutes." },
+      { step: 4, title: "Rest & Garnish", instruction: "Turn off flame. Top with fresh herbs pouch and rest 2 minutes before serving hot." }
+    ];
+
+    const ingredientsHtml = rawList.map(ing => `
+      <li class="ingredient-item">
+        <span class="check-dot"></span>
+        <span>${ing}</span>
+      </li>
+    `).join("");
+
+    const scriptHtml = scriptList.map(stepObj => `
+      <div class="script-step-card">
+        <div class="script-step-num">${stepObj.step || 1}</div>
+        <div class="script-step-content">
+          <h4>${stepObj.title || 'Cooking Step'}</h4>
+          <p>${stepObj.instruction || ''}</p>
+        </div>
+      </div>
+    `).join("");
+
+    recipeModalBody.innerHTML = `
+      <div class="recipe-hero">
+        <img src="${item.image_url}" alt="${item.name}">
+      </div>
+
+      <div class="recipe-meta-bar">
+        <div>
+          <div class="item-label">Cook Time</div>
+          <div class="item-val">${item.cook_time_minutes || 20} Mins</div>
+        </div>
+        <div>
+          <div class="item-label">Servings</div>
+          <div class="item-val">${item.servings || 2} Persons</div>
+        </div>
+        <div>
+          <div class="item-label">Spice Level</div>
+          <div class="item-val">${item.spice_level || 'Medium'}</div>
+        </div>
+        <div>
+          <div class="item-label">Kit Price</div>
+          <div class="item-val">&#8377;${Number(item.price).toFixed(0)}</div>
+        </div>
+      </div>
+
+      <div class="ingredients-box">
+        <div class="ingredients-header">
+          <span class="ingredients-title">Sealed Raw Materials Inside Kit</span>
+          <span class="vendor-note">Direct Vendor Packaged</span>
+        </div>
+        <ul class="ingredient-list">
+          ${ingredientsHtml}
+        </ul>
+      </div>
+
+      <div class="script-section-title">Step-by-Step Chef Cooking Script</div>
+      <div class="script-timeline">
+        ${scriptHtml}
+      </div>
+    `;
+
+    recipeModalFooter.innerHTML = `
+      <button class="btn btn-secondary" id="modalDismissRecipeBtn">Close</button>
+      <button class="btn btn-primary" id="modalAddRecipeCartBtn">
+        Add Meal Kit to Cart — &#8377;${Number(item.price).toFixed(0)}
+      </button>
+    `;
+
+    document.getElementById("modalDismissRecipeBtn").addEventListener("click", () => {
+      recipeModal.classList.remove("open");
+    });
+
+    document.getElementById("modalAddRecipeCartBtn").addEventListener("click", () => {
+      addToCart(item);
+      recipeModal.classList.remove("open");
+    });
+
+    recipeModal.classList.add("open");
   }
 
   // ============================================================================
@@ -231,11 +364,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     saveCart();
     renderCart();
-    showToast(`Added ${item.name} to cart!`, "success");
-
-    // Animate cart badge
-    cartBadge.style.transform = "scale(1.35)";
-    setTimeout(() => { cartBadge.style.transform = "scale(1)"; }, 250);
+    showToast(`Added ${item.name} kit to cart`, "success");
   }
 
   function updateQuantity(foodId, delta) {
@@ -261,20 +390,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (AppState.cart.length === 0) {
       cartItemsList.innerHTML = `
         <div class="cart-empty-state">
-          <div class="cart-empty-icon">🛒</div>
-          <div style="font-weight: 600; font-size: 1.1rem; color: var(--text-main);">Your cart is empty</div>
-          <p style="font-size: 0.85rem; color: var(--text-muted);">Explore our gourmet kitchen items and add your favorites!</p>
+          <svg class="cart-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+          <div class="cart-empty-title">Your cart is empty</div>
+          <p style="font-size: 0.85rem; color: var(--text-secondary);">Select from our authentic Indian meal kits to get started.</p>
         </div>
       `;
-      cartSubtotal.textContent = "$0.00";
-      cartTotal.textContent = "$0.00";
+      cartSubtotal.innerHTML = "&#8377;0";
+      cartTotal.innerHTML = "&#8377;0";
       proceedCheckoutBtn.disabled = true;
-      proceedCheckoutBtn.style.opacity = "0.5";
       return;
     }
 
     proceedCheckoutBtn.disabled = false;
-    proceedCheckoutBtn.style.opacity = "1";
 
     let subtotal = 0;
     cartItemsList.innerHTML = "";
@@ -287,12 +414,12 @@ document.addEventListener("DOMContentLoaded", () => {
       row.className = "cart-item-row";
       row.innerHTML = `
         <img class="cart-item-thumb" src="${item.image_url}" alt="${item.name}">
-        <div class="cart-item-details">
+        <div class="cart-item-info">
           <div class="cart-item-title">${item.name}</div>
-          <div class="cart-item-price">$${item.price.toFixed(2)} × ${item.quantity} = $${itemTotal.toFixed(2)}</div>
+          <div class="cart-item-price">&#8377;${item.price.toFixed(0)} &times; ${item.quantity} = &#8377;${itemTotal.toFixed(0)}</div>
         </div>
         <div class="cart-qty-ctrl">
-          <button class="qty-btn btn-minus" data-id="${item.id}">−</button>
+          <button class="qty-btn btn-minus" data-id="${item.id}">&minus;</button>
           <span class="qty-val">${item.quantity}</span>
           <button class="qty-btn btn-plus" data-id="${item.id}">+</button>
         </div>
@@ -304,359 +431,346 @@ document.addEventListener("DOMContentLoaded", () => {
       cartItemsList.appendChild(row);
     });
 
-    const deliveryFee = subtotal > 35 ? 0.00 : 2.50;
+    const deliveryFee = 40;
     const grandTotal = subtotal + deliveryFee;
 
-    cartSubtotal.textContent = `$${subtotal.toFixed(2)}`;
-    cartDeliveryFee.textContent = deliveryFee === 0 ? "FREE (Orders > $35)" : `$${deliveryFee.toFixed(2)}`;
-    cartTotal.textContent = `$${grandTotal.toFixed(2)}`;
-  }
-
-  function openCartDrawer() {
-    cartDrawer.classList.add("active");
-    cartBackdrop.classList.add("active");
-  }
-
-  function closeCartDrawer() {
-    cartDrawer.classList.remove("active");
-    cartBackdrop.classList.remove("active");
+    cartSubtotal.innerHTML = `&#8377;${subtotal.toFixed(0)}`;
+    cartDeliveryFee.innerHTML = `&#8377;${deliveryFee.toFixed(0)}`;
+    cartTotal.innerHTML = `&#8377;${grandTotal.toFixed(0)}`;
   }
 
   // ============================================================================
-  // CHECKOUT
+  // CHECKOUT FLOW
   // ============================================================================
-  async function openCheckoutModal() {
-    closeCartDrawer();
-    const user = window.dataService.getCurrentUser();
-    const addresses = await window.dataService.getAddresses(user ? user.id : null);
+  function openCheckout() {
+    if (AppState.cart.length === 0) return;
 
-    checkoutAddressSelect.innerHTML = addresses.map(a => `
-      <option value="${a.address}" data-lat="${a.latitude}" data-lng="${a.longitude}">
-        ${a.label}: ${a.address}
-      </option>
-    `).join("");
+    let subtotal = 0;
+    let summaryHtml = "";
 
-    let subtotal = AppState.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-    const deliveryFee = subtotal > 35 ? 0.00 : 2.50;
-    const grandTotal = subtotal + deliveryFee;
+    AppState.cart.forEach(item => {
+      const itemTotal = item.price * item.quantity;
+      subtotal += itemTotal;
+      summaryHtml += `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span>${item.quantity}&times; ${item.name}</span>
+          <span style="font-weight: 600;">&#8377;${itemTotal.toFixed(0)}</span>
+        </div>
+      `;
+    });
 
-    checkoutItemsSummary.innerHTML = AppState.cart.map(i => `${i.name} (x${i.quantity})`).join(", ");
-    checkoutGrandTotal.textContent = `$${grandTotal.toFixed(2)}`;
+    const deliveryFee = 40;
+    const total = subtotal + deliveryFee;
 
-    checkoutModal.classList.add("active");
+    summaryHtml += `
+      <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 6px; margin-top: 6px; color: var(--text-secondary);">
+        <span>Hub Delivery Fee</span>
+        <span>&#8377;${deliveryFee.toFixed(0)}</span>
+      </div>
+    `;
+
+    checkoutItemsSummary.innerHTML = summaryHtml;
+    checkoutGrandTotal.innerHTML = `&#8377;${total.toFixed(0)}`;
+
+    cartDrawer.classList.remove("open");
+    cartBackdrop.classList.remove("open");
+    checkoutModal.classList.add("open");
   }
 
   async function handleOrderSubmission() {
     if (AppState.cart.length === 0) return;
 
-    const selectedOption = checkoutAddressSelect.options[checkoutAddressSelect.selectedIndex];
-    const deliveryAddress = selectedOption ? selectedOption.value : "100 Feet Road, Indiranagar, Bengaluru";
-    const deliveryLat = selectedOption ? Number(selectedOption.dataset.lat) : 12.9784;
-    const deliveryLng = selectedOption ? Number(selectedOption.dataset.lng) : 77.6408;
-
-    let subtotal = AppState.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-    const deliveryFee = subtotal > 35 ? 0.00 : 2.50;
-    const grandTotal = subtotal + deliveryFee;
-
     submitOrderBtn.disabled = true;
-    submitOrderBtn.innerHTML = `<span>⏳ Dispatching Order to Cloud...</span>`;
+    submitOrderBtn.textContent = "Placing Order...";
+
+    const subtotal = AppState.cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
+    const deliveryFee = 40;
+    const total = subtotal + deliveryFee;
+
+    const payload = {
+      address: checkoutAddressSelect.value,
+      paymentMethod: checkoutPaymentMethod.value,
+      notes: checkoutNotes.value,
+      items: AppState.cart.map(item => ({
+        food_id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        unit_price: item.price
+      })),
+      subtotal: subtotal,
+      deliveryFee: deliveryFee,
+      totalAmount: total
+    };
 
     try {
-      const order = await window.dataService.createOrder({
-        items: AppState.cart,
-        subtotal,
-        deliveryFee,
-        totalAmount: grandTotal,
-        deliveryAddress,
-        deliveryLat,
-        deliveryLng,
-        paymentMethod: checkoutPaymentMethod.value,
-        notes: checkoutNotes.value
-      });
+      const createdOrder = await window.dataService.createOrder(payload);
+      checkoutModal.classList.remove("open");
 
       // Clear cart
       AppState.cart = [];
       saveCart();
       renderCart();
 
-      checkoutModal.classList.remove("active");
-      showToast(`Order ${order.order_number} successfully created!`, "success");
-
-      // Open tracking modal
-      openTrackingModal(order.id);
+      showToast("Order placed successfully! Hub packaging in progress.", "success");
+      openTrackingModal(createdOrder);
     } catch (err) {
-      console.error("Order creation failed:", err);
-      showToast(`Unable to place order: ${err.message || err}`, "warning");
+      console.error("Order submission failed:", err);
+      showToast("Order creation encountered an error: " + err.message, "danger");
     } finally {
       submitOrderBtn.disabled = false;
-      submitOrderBtn.innerHTML = `🚀 Place Cloud Order`;
+      submitOrderBtn.textContent = "Place Kit Order";
     }
   }
 
   // ============================================================================
-  // ORDER TRACKING & REALTIME GPS MAP
+  // LIVE TELEMETRY & TRACKING
   // ============================================================================
-  async function openTrackingModal(orderId = null) {
-    let order;
-    if (orderId) {
-      order = await window.dataService.getOrder(orderId);
-    } else {
-      // Find latest placed order
-      const orders = await window.dataService.getCustomerOrders();
-      order = orders.length > 0 ? orders[0] : await window.dataService.getOrder("HV-847291");
-    }
-
+  function openTrackingModal(order) {
     if (!order) {
-      showToast("No active order found to track.", "info");
-      return;
+      order = window.dataService.getActiveMockOrder();
     }
-
     AppState.activeOrder = order;
-    trackingOrderSubtitle.textContent = `Order #${order.order_number || order.id} • ${order.payment_method}`;
 
+    trackingOrderSubtitle.textContent = `Order #${order.order_number || order.id.slice(0, 8)}`;
     updateTrackingStepper(order.status);
-    initOrUpdateMap(order);
 
-    trackingModal.classList.add("active");
-
-    // Clean previous realtime listener
-    if (AppState.unsubscribeRealtime) {
-      AppState.unsubscribeRealtime();
+    if (order.driver) {
+      trackingDriverName.textContent = order.driver.name;
+      trackingDriverDesc.textContent = `${order.driver.vehicle_type} • ${order.driver.vehicle_number}`;
+      trackingDriverAvatar.textContent = order.driver.name.split(" ").map(n => n[0]).join("");
     }
 
-    // Subscribe to live status changes
-    AppState.unsubscribeRealtime = window.dataService.subscribeToOrder(order.id, (updated) => {
-      showToast(`⚡ Order status updated: ${updated.status}`, "info");
-      updateTrackingStepper(updated.status);
-      if (updated.status === "DELIVERED") {
-        openReviewBtn.style.display = "inline-flex";
-      }
-    });
+    trackingModal.classList.add("open");
+
+    // Initialize or refresh map
+    setTimeout(() => {
+      initTrackingMap(order);
+    }, 200);
+
+    // Subscribe to realtime updates if connected
+    subscribeToOrderRealtime(order.id);
   }
 
   function updateTrackingStepper(status) {
-    const sequence = [
-      "PLACED",
-      "CONFIRMED",
-      "PREPARING",
-      "READY_FOR_PICKUP",
-      "DRIVER_ASSIGNED",
-      "PICKED_UP",
-      "OUT_FOR_DELIVERY",
-      "DELIVERED"
+    const steps = [
+      { id: "stepPlaced", statusKey: "placed" },
+      { id: "stepConfirmed", statusKey: "confirmed" },
+      { id: "stepPreparing", statusKey: "preparing" },
+      { id: "stepPickedUp", statusKey: "picked_up" },
+      { id: "stepOnWay", statusKey: "out_for_delivery" },
+      { id: "stepDelivered", statusKey: "delivered" }
     ];
 
-    const currentIndex = sequence.indexOf(status);
+    const statusHierarchy = {
+      "placed": 1,
+      "confirmed": 2,
+      "preparing": 3,
+      "driver_assigned": 3,
+      "picked_up": 4,
+      "out_for_delivery": 5,
+      "delivered": 6
+    };
 
-    sequence.forEach((s, idx) => {
-      const stepEl = document.getElementById(`step-${s}`);
-      if (!stepEl) return;
+    const currentRank = statusHierarchy[status] || 1;
 
-      stepEl.classList.remove("completed", "active");
+    steps.forEach((step, idx) => {
+      const el = document.getElementById(step.id);
+      if (!el) return;
 
-      if (idx < currentIndex) {
-        stepEl.classList.add("completed");
-        const marker = stepEl.querySelector(".step-marker");
-        if (marker) marker.textContent = "✓";
-      } else if (idx === currentIndex) {
-        stepEl.classList.add("active");
-        const marker = stepEl.querySelector(".step-marker");
-        if (marker && s === "OUT_FOR_DELIVERY") marker.textContent = "🛵";
+      el.classList.remove("done", "active");
+
+      const stepRank = idx + 1;
+      if (stepRank < currentRank) {
+        el.classList.add("done");
+      } else if (stepRank === currentRank) {
+        el.classList.add("active");
       }
     });
 
-    if (status === "DELIVERED") {
+    if (status === "delivered" && openReviewBtn) {
       openReviewBtn.style.display = "inline-flex";
     }
   }
 
-  function initOrUpdateMap(order) {
-    const kitchen = window.AppConfig.getCentralKitchen();
-    const custLat = order.delivery_latitude || 12.9784;
-    const custLng = order.delivery_longitude || 77.6408;
+  function initTrackingMap(order) {
+    const kitchenPos = [12.9352, 77.6245]; // Bengaluru Hub
+    const customerPos = [12.9716, 77.5946]; // Customer
+    const driverPos = order.current_driver_location ? 
+      [order.current_driver_location.lat, order.current_driver_location.lng] :
+      [12.9480, 77.6100];
 
-    // Wait until modal is rendered for correct sizing
-    setTimeout(() => {
-      if (!AppState.map) {
-        AppState.map = L.map("trackingMap").setView([kitchen.lat, kitchen.lng], 13);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(AppState.map);
-      }
+    const mapElement = document.getElementById("liveTrackingMap");
+    if (!mapElement) return;
 
-      AppState.map.invalidateSize();
+    if (!AppState.map) {
+      AppState.map = L.map('liveTrackingMap', {
+        zoomControl: true,
+        attributionControl: false
+      }).setView(driverPos, 13);
 
-      // Clear existing markers
-      if (AppState.markers.kitchen) AppState.map.removeLayer(AppState.markers.kitchen);
-      if (AppState.markers.customer) AppState.map.removeLayer(AppState.markers.customer);
-      if (AppState.markers.driver) AppState.map.removeLayer(AppState.markers.driver);
-      if (AppState.routeLine) AppState.map.removeLayer(AppState.routeLine);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19
+      }).addTo(AppState.map);
 
-      // Kitchen Marker
-      const kitchenIcon = L.divIcon({
+      // Markers with SVG
+      const hubIcon = L.divIcon({
         className: 'custom-map-icon',
-        html: `<div style="font-size: 26px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));">🍳</div>`,
+        html: `<div style="background:#1C1C1C; color:#FFF; width:30px; height:30px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; border:2px solid #FFF; box-shadow:0 2px 6px rgba(0,0,0,0.3);">HUB</div>`,
         iconSize: [30, 30]
       });
-      AppState.markers.kitchen = L.marker([kitchen.lat, kitchen.lng], { icon: kitchenIcon })
-        .addTo(AppState.map)
-        .bindPopup(`<b>${kitchen.name}</b><br>Dispatch Center`);
 
-      // Customer Marker
-      const custIcon = L.divIcon({
+      const customerIcon = L.divIcon({
         className: 'custom-map-icon',
-        html: `<div style="font-size: 26px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));">🏠</div>`,
+        html: `<div style="background:#E85D3F; color:#FFF; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; border:2px solid #FFF; box-shadow:0 2px 6px rgba(0,0,0,0.3);">YOU</div>`,
         iconSize: [30, 30]
       });
-      AppState.markers.customer = L.marker([custLat, custLng], { icon: custIcon })
-        .addTo(AppState.map)
-        .bindPopup(`<b>Destination</b><br>${order.delivery_address || 'Delivery Address'}`);
-
-      // Driver Marker (Starts near kitchen or current driver pos)
-      const driverLat = order.drivers?.current_latitude || kitchen.lat + 0.003;
-      const driverLng = order.drivers?.current_longitude || kitchen.lng + 0.004;
 
       const driverIcon = L.divIcon({
         className: 'custom-map-icon',
-        html: `<div style="font-size: 28px; filter: drop-shadow(0 3px 8px rgba(255,94,54,0.7)); transform: scale(1.1);">🛵</div>`,
-        iconSize: [32, 32]
+        html: `<div style="background:#2563EB; color:#FFF; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; border:2px solid #FFF; box-shadow:0 2px 8px rgba(0,0,0,0.4);">GPS</div>`,
+        iconSize: [34, 34]
       });
-      AppState.markers.driver = L.marker([driverLat, driverLng], { icon: driverIcon })
-        .addTo(AppState.map)
-        .bindPopup(`<b>Driver</b><br>${order.drivers?.profiles?.name || 'Ravi Kumar (Speedy Driver)'}`);
 
-      // Route Polyline
-      AppState.routeLine = L.polyline(
-        [[kitchen.lat, kitchen.lng], [driverLat, driverLng], [custLat, custLng]],
-        { color: '#ff5e36', weight: 4, dashArray: '8, 8', opacity: 0.85 }
-      ).addTo(AppState.map);
+      AppState.markers.kitchen = L.marker(kitchenPos, { icon: hubIcon }).addTo(AppState.map).bindPopup("HomeVibes Raw Materials Hub");
+      AppState.markers.customer = L.marker(customerPos, { icon: customerIcon }).addTo(AppState.map).bindPopup("Delivery Address");
+      AppState.markers.driver = L.marker(driverPos, { icon: driverIcon }).addTo(AppState.map).bindPopup("Delivery Fleet Agent");
 
-      // Fit bounds
-      AppState.map.fitBounds([
-        [kitchen.lat, kitchen.lng],
-        [custLat, custLng]
-      ], { padding: [40, 40] });
-
-    }, 200);
+      AppState.routeLine = L.polyline([kitchenPos, driverPos, customerPos], {
+        color: '#E85D3F',
+        weight: 3,
+        dashArray: '6, 6'
+      }).addTo(AppState.map);
+    } else {
+      AppState.map.invalidateSize();
+      AppState.markers.driver.setLatLng(driverPos);
+      AppState.routeLine.setLatLngs([kitchenPos, driverPos, customerPos]);
+      AppState.map.panTo(driverPos);
+    }
   }
 
-  function simulateDriverMovement() {
-    if (!AppState.activeOrder) return;
-    showToast("📍 Starting real-time GPS breadcrumb simulation...", "info");
+  function subscribeToOrderRealtime(orderId) {
+    if (AppState.unsubscribeRealtime) {
+      AppState.unsubscribeRealtime();
+    }
 
-    window.dataService.simulateLocalDriverGPS(AppState.activeOrder.id, (coord) => {
-      if (AppState.markers.driver && AppState.map) {
-        AppState.markers.driver.setLatLng([coord.latitude, coord.longitude]);
-        AppState.map.panTo([coord.latitude, coord.longitude]);
+    AppState.unsubscribeRealtime = window.dataService.subscribeToOrderUpdates(
+      orderId,
+      (updatedOrder) => {
+        AppState.activeOrder = updatedOrder;
+        updateTrackingStepper(updatedOrder.status);
+
+        if (updatedOrder.current_driver_location && AppState.markers.driver) {
+          const newPos = [updatedOrder.current_driver_location.lat, updatedOrder.current_driver_location.lng];
+          AppState.markers.driver.setLatLng(newPos);
+          if (AppState.map) AppState.map.panTo(newPos);
+        }
+        showToast(`Order status updated: ${updatedOrder.status}`, "info");
       }
-    });
+    );
   }
 
   // ============================================================================
   // ORDERS HISTORY
   // ============================================================================
-  async function openOrdersHistoryModal() {
-    const user = window.dataService.getCurrentUser();
-    const orders = await window.dataService.getCustomerOrders(user ? user.id : null);
+  async function openOrdersHistory() {
+    ordersHistoryList.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-secondary);">Loading orders...</div>`;
+    ordersModal.classList.add("open");
 
-    ordersHistoryList.innerHTML = "";
-
-    if (!orders || orders.length === 0) {
-      ordersHistoryList.innerHTML = `
-        <div style="text-align: center; padding: 3rem; color: var(--text-dim);">
-          <div style="font-size: 3rem; margin-bottom: 0.5rem;">📦</div>
-          <p>No past orders placed yet.</p>
-        </div>
-      `;
-    } else {
-      orders.forEach(o => {
-        const item = document.createElement("div");
-        item.style.cssText = "background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem;";
-        item.innerHTML = `
-          <div>
-            <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: 0.2rem;">Order #${o.order_number}</div>
-            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem;">${new Date(o.created_at).toLocaleString()}</div>
-            <div style="display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: rgba(255,94,54,0.15); color: #ff7552;">
-              ${o.status}
-            </div>
-          </div>
-          <div style="text-align: right;">
-            <div style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">
-              $${Number(o.total_amount).toFixed(2)}
-            </div>
-            <button class="btn-primary track-btn" data-order-id="${o.id}" style="font-size: 0.85rem; padding: 0.4rem 1rem;">
-              Track Order
-            </button>
+    try {
+      const orders = await window.dataService.getUserOrders();
+      if (!orders || orders.length === 0) {
+        ordersHistoryList.innerHTML = `
+          <div style="padding: 32px 16px; text-align: center; color: var(--text-secondary);">
+            <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">No past orders found</div>
+            <p style="font-size: 0.85rem;">Your completed meal kit deliveries will appear here.</p>
           </div>
         `;
+        return;
+      }
 
-        item.querySelector(".track-btn").addEventListener("click", () => {
-          ordersModal.classList.remove("active");
-          openTrackingModal(o.id);
-        });
-
-        ordersHistoryList.appendChild(item);
-      });
+      ordersHistoryList.innerHTML = orders.map(ord => `
+        <div style="padding: 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 12px; background: var(--bg-surface);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-weight: 700; font-size: 0.95rem;">Order #${ord.order_number || ord.id.slice(0, 8)}</span>
+            <span style="font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--bg-surface-subtle); border: 1px solid var(--border-color); text-transform: uppercase;">${ord.status}</span>
+          </div>
+          <div style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 8px;">
+            ${new Date(ord.created_at).toLocaleDateString("en-IN", { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-light); padding-top: 8px;">
+            <span style="font-weight: 800; font-size: 1rem;">&#8377;${Number(ord.total_amount).toFixed(0)}</span>
+            <button class="btn btn-secondary btn-sm" onclick="window.trackExistingOrder('${ord.id}')">Track</button>
+          </div>
+        </div>
+      `).join("");
+    } catch (err) {
+      ordersHistoryList.innerHTML = `<div style="padding: 24px; color: var(--danger);">Failed to load order history.</div>`;
     }
-
-    ordersModal.classList.add("active");
   }
 
+  window.trackExistingOrder = async (orderId) => {
+    ordersModal.classList.remove("open");
+    try {
+      const order = await window.dataService.getOrderById(orderId);
+      openTrackingModal(order);
+    } catch (err) {
+      showToast("Could not load order tracking", "warning");
+    }
+  };
+
   // ============================================================================
-  // AUTHENTICATION UI & LOGIC
+  // USER AUTHENTICATION
   // ============================================================================
   function updateAuthUI() {
-    const user = window.dataService.getCurrentUser();
+    const user = window.authService.getCurrentUser();
     if (user) {
+      const initials = (user.name || user.email).slice(0, 2).toUpperCase();
       authNavContainer.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
-          <div style="font-size: 0.9rem; font-weight: 600; color: #fff;">
-            👤 ${user.name || 'Customer'}
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--text-primary); color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700;">
+            ${initials}
           </div>
-          <button class="btn-secondary" style="font-size: 0.8rem; padding: 0.35rem 0.8rem;" id="logoutBtn">
-            Sign Out
-          </button>
+          <button class="btn btn-secondary btn-sm" id="logoutBtn" title="Sign Out">Sign Out</button>
         </div>
       `;
-      document.getElementById("logoutBtn").addEventListener("click", async () => {
-        await window.dataService.logout();
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        window.authService.signOut();
         updateAuthUI();
-        showToast("Signed out successfully.", "info");
+        showToast("Signed out successfully", "info");
       });
     } else {
       authNavContainer.innerHTML = `
-        <button class="btn-primary" id="openAuthModalBtn">
+        <button class="btn btn-secondary btn-sm" id="openAuthModalBtn">
           <span>Sign In</span>
         </button>
       `;
       document.getElementById("openAuthModalBtn").addEventListener("click", () => {
-        authModal.classList.add("active");
+        authModal.classList.add("open");
       });
     }
   }
 
   async function handleAuthSubmit(e) {
     e.preventDefault();
+    authSubmitBtn.disabled = true;
+    authSubmitBtn.textContent = "Processing...";
+
     const email = authEmail.value.trim();
     const password = authPassword.value;
     const name = authName.value.trim();
 
-    authSubmitBtn.disabled = true;
-    authSubmitBtn.textContent = "Processing...";
-
     try {
       if (isSignUpMode) {
-        await window.dataService.register({ email, password, name });
-        showToast("Registration successful! Welcome to HomeVibes.", "success");
+        await window.authService.signUp(email, password, name);
+        showToast("Account created successfully!", "success");
       } else {
-        await window.dataService.login({ email, password });
+        await window.authService.signIn(email, password);
         showToast("Signed in successfully!", "success");
       }
-      authModal.classList.remove("active");
+      authModal.classList.remove("open");
       updateAuthUI();
     } catch (err) {
-      console.error("Auth error:", err);
-      showToast(err.message || "Authentication failed", "warning");
+      showToast(err.message || "Authentication error", "danger");
     } finally {
       authSubmitBtn.disabled = false;
       authSubmitBtn.textContent = isSignUpMode ? "Create Account" : "Sign In";
@@ -664,127 +778,139 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ============================================================================
-  // EVENT LISTENERS & NAVIGATION
+  // TOAST NOTIFICATIONS
+  // ============================================================================
+  function showToast(message, type = "info") {
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+
+    toastContainer.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      toast.style.transform = "translateY(8px)";
+      setTimeout(() => toast.remove(), 250);
+    }, 3500);
+  }
+
+  // ============================================================================
+  // EVENT LISTENERS BINDING
   // ============================================================================
   function setupEventListeners() {
     // Navigation
-    brandHomeBtn.addEventListener("click", (e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
-    navMenuBtn.addEventListener("click", (e) => { e.preventDefault(); document.getElementById("menu").scrollIntoView({ behavior: 'smooth' }); });
-    navOrdersBtn.addEventListener("click", (e) => { e.preventDefault(); openOrdersHistoryModal(); });
-    navTrackingBtn.addEventListener("click", (e) => { e.preventDefault(); openTrackingModal(); });
+    if (navMenuBtn) navMenuBtn.addEventListener("click", () => {
+      document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" });
+    });
+    if (navOrdersBtn) navOrdersBtn.addEventListener("click", openOrdersHistory);
+    if (navTrackingBtn) navTrackingBtn.addEventListener("click", () => openTrackingModal(null));
 
-    // Modals
-    openCloudModalBtn.addEventListener("click", () => cloudArchitectureModal.classList.add("active"));
-    closeCloudModalBtn.addEventListener("click", () => cloudArchitectureModal.classList.remove("active"));
-    cloudArchitectureModal.addEventListener("click", (e) => { if (e.target === cloudArchitectureModal) cloudArchitectureModal.classList.remove("active"); });
+    // Cart Drawer
+    openCartBtn.addEventListener("click", () => {
+      cartDrawer.classList.add("open");
+      cartBackdrop.classList.add("open");
+    });
+    closeCartBtn.addEventListener("click", () => {
+      cartDrawer.classList.remove("open");
+      cartBackdrop.classList.remove("open");
+    });
+    cartBackdrop.addEventListener("click", () => {
+      cartDrawer.classList.remove("open");
+      cartBackdrop.classList.remove("open");
+    });
 
-    openCartBtn.addEventListener("click", openCartDrawer);
-    closeCartBtn.addEventListener("click", closeCartDrawer);
-    cartBackdrop.addEventListener("click", closeCartDrawer);
-    proceedCheckoutBtn.addEventListener("click", openCheckoutModal);
-
-    closeCheckoutBtn.addEventListener("click", () => checkoutModal.classList.remove("active"));
-    checkoutModal.addEventListener("click", (e) => { if (e.target === checkoutModal) checkoutModal.classList.remove("active"); });
+    // Checkout
+    proceedCheckoutBtn.addEventListener("click", openCheckout);
+    closeCheckoutBtn.addEventListener("click", () => checkoutModal.classList.remove("open"));
+    cancelCheckoutBtn.addEventListener("click", () => checkoutModal.classList.remove("open"));
     submitOrderBtn.addEventListener("click", handleOrderSubmission);
 
-    closeTrackingBtn.addEventListener("click", () => trackingModal.classList.remove("active"));
-    trackingModal.addEventListener("click", (e) => { if (e.target === trackingModal) trackingModal.classList.remove("active"); });
-    simulateDriverMovementBtn.addEventListener("click", simulateDriverMovement);
-    openReviewBtn.addEventListener("click", () => {
-      const rating = prompt("Rate your delivery experience (1-5 stars):", "5");
-      const comment = prompt("Optional feedback comments:", "Delicious food and lightning-fast delivery!");
-      if (rating) {
-        window.dataService.submitReview({
-          orderId: AppState.activeOrder.id,
-          rating,
-          comment
-        });
-        showToast("Thank you for your rating! ⭐", "success");
+    // Recipe Modal Close
+    closeRecipeModalBtn.addEventListener("click", () => recipeModal.classList.remove("open"));
+    recipeModal.addEventListener("click", (e) => {
+      if (e.target === recipeModal) recipeModal.classList.remove("open");
+    });
+
+    // Tracking Modal
+    closeTrackingBtn.addEventListener("click", () => trackingModal.classList.remove("open"));
+    closeTrackingFooterBtn.addEventListener("click", () => trackingModal.classList.remove("open"));
+    simulateDriverMovementBtn.addEventListener("click", () => {
+      if (AppState.markers.driver) {
+        const cur = AppState.markers.driver.getLatLng();
+        const next = [cur.lat + 0.002, cur.lng - 0.002];
+        AppState.markers.driver.setLatLng(next);
+        if (AppState.map) AppState.map.panTo(next);
+        showToast("Simulated GPS telemetry packet dispatched", "info");
       }
     });
 
-    closeOrdersBtn.addEventListener("click", () => ordersModal.classList.remove("active"));
-    ordersModal.addEventListener("click", (e) => { if (e.target === ordersModal) ordersModal.classList.remove("active"); });
+    // Orders Modal
+    closeOrdersBtn.addEventListener("click", () => ordersModal.classList.remove("open"));
 
-    // Auth Modal
-    closeAuthBtn.addEventListener("click", () => authModal.classList.remove("active"));
-    authModal.addEventListener("click", (e) => { if (e.target === authModal) authModal.classList.remove("active"); });
+    // Auth
     tabSignIn.addEventListener("click", () => {
       isSignUpMode = false;
+      tabSignIn.style.color = "var(--text-primary)";
+      tabSignIn.style.borderBottom = "2px solid var(--text-primary)";
+      tabSignUp.style.color = "var(--text-secondary)";
+      tabSignUp.style.borderBottom = "none";
       groupName.style.display = "none";
-      tabSignIn.style.background = "var(--card-hover)";
-      tabSignIn.style.color = "#fff";
-      tabSignUp.style.background = "none";
-      tabSignUp.style.color = "var(--text-muted)";
       authSubmitBtn.textContent = "Sign In";
     });
+
     tabSignUp.addEventListener("click", () => {
       isSignUpMode = true;
+      tabSignUp.style.color = "var(--text-primary)";
+      tabSignUp.style.borderBottom = "2px solid var(--text-primary)";
+      tabSignIn.style.color = "var(--text-secondary)";
+      tabSignIn.style.borderBottom = "none";
       groupName.style.display = "block";
-      tabSignUp.style.background = "var(--card-hover)";
-      tabSignUp.style.color = "#fff";
-      tabSignIn.style.background = "none";
-      tabSignIn.style.color = "var(--text-muted)";
       authSubmitBtn.textContent = "Create Account";
     });
+
     authForm.addEventListener("submit", handleAuthSubmit);
+    closeAuthBtn.addEventListener("click", () => authModal.classList.remove("open"));
 
-    // Autofill demo accounts
-    document.getElementById("autofillCustomer").addEventListener("click", () => {
-      authEmail.value = "customer@homevibes.com";
-      authPassword.value = "HomeVibes@2026";
-    });
-    document.getElementById("autofillDriver").addEventListener("click", () => {
-      authEmail.value = "driver@homevibes.com";
-      authPassword.value = "HomeVibes@2026";
-    });
-    document.getElementById("autofillAdmin").addEventListener("click", () => {
-      authEmail.value = "admin@homevibes.com";
-      authPassword.value = "HomeVibes@2026";
-    });
-
-    // Search bar
-    foodSearchInput.addEventListener("input", (e) => {
-      AppState.searchQuery = e.target.value;
-      loadFoodItems();
-    });
+    // Search
     searchSubmitBtn.addEventListener("click", () => {
-      AppState.searchQuery = foodSearchInput.value;
+      AppState.searchQuery = foodSearchInput.value.trim();
       loadFoodItems();
     });
+    foodSearchInput.addEventListener("keyup", (e) => {
+      if (e.key === "Enter") {
+        AppState.searchQuery = foodSearchInput.value.trim();
+        loadFoodItems();
+      }
+    });
 
-    // Cloud credentials save
+    // Cloud Viva Modal
+    openCloudModalBtn.addEventListener("click", () => cloudArchitectureModal.classList.add("open"));
+    closeCloudModalBtn.addEventListener("click", () => cloudArchitectureModal.classList.remove("open"));
+    closeCloudModalFooterBtn.addEventListener("click", () => cloudArchitectureModal.classList.remove("open"));
+
+    tabArchOverview.addEventListener("click", () => {
+      tabArchOverview.style.fontWeight = "700";
+      tabArchConfig.style.fontWeight = "400";
+      archOverviewContent.style.display = "block";
+      archConfigContent.style.display = "none";
+    });
+
+    tabArchConfig.addEventListener("click", () => {
+      tabArchConfig.style.fontWeight = "700";
+      tabArchOverview.style.fontWeight = "400";
+      archOverviewContent.style.display = "none";
+      archConfigContent.style.display = "block";
+    });
+
     if (saveCloudConfigBtn) {
       saveCloudConfigBtn.addEventListener("click", () => {
-        const url = cfgSupabaseUrl.value.trim();
-        const key = cfgSupabaseKey.value.trim();
-        window.AppConfig.saveCredentials(url, key);
-        window.dataService.init();
-        showToast("Supabase cloud credentials saved! Reconnected.", "success");
-        cloudArchitectureModal.classList.remove("active");
-        loadFoodItems();
+        if (window.AppConfig) {
+          window.AppConfig.setSupabaseConfig(cfgSupabaseUrl.value, cfgSupabaseKey.value);
+          showToast("Cloud configuration saved and reconnected", "success");
+        }
       });
     }
   }
 
-  // Toast Notification Helper
-  function showToast(message, type = "info") {
-    const toast = document.createElement("div");
-    toast.className = `toast ${type}`;
-    let icon = "ℹ️";
-    if (type === "success") icon = "✅";
-    if (type === "warning") icon = "⚠️";
-
-    toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
-    toastContainer.appendChild(toast);
-
-    setTimeout(() => {
-      toast.style.opacity = "0";
-      toast.style.transform = "translateX(50px)";
-      setTimeout(() => toast.remove(), 300);
-    }, 3500);
-  }
-
-  // Start app
+  // Kickoff
   init();
 });

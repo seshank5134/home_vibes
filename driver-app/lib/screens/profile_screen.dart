@@ -101,7 +101,7 @@ class ProfileScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
                   Text(
-                    '☁️ Cloud Architecture Role',
+                    'Cloud Architecture Role',
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF38BDF8)),
                   ),
                   SizedBox(height: 6),

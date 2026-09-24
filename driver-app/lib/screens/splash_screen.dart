@@ -66,7 +66,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 ],
               ),
               child: const Center(
-                child: Text('🔥', style: TextStyle(fontSize: 44)),
+                child: Icon(Icons.two_wheeler, size: 44, color: Colors.white),
               ),
             ),
             const SizedBox(height: 24),
@@ -96,7 +96,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 border: Border.all(color: const Color(0x4D38BDF8)),
               ),
               child: const Text(
-                '⚡ Cloud Delivery Partner',
+                'Cloud Delivery Fleet',
                 style: TextStyle(
                   color: Color(0xFF38BDF8),
                   fontSize: 12,

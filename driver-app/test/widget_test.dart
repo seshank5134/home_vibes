@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:driver_app/main.dart';
 import 'package:driver_app/screens/splash_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
   testWidgets('HomeVibes Driver App launches successfully with SplashScreen', (WidgetTester tester) async {
@@ -9,9 +10,13 @@ void main() {
 
     // Verify SplashScreen is loaded
     expect(find.byType(SplashScreen), findsOneWidget);
-    expect(find.textContaining('Delivery Partner'), findsOneWidget);
+    expect(find.textContaining('Delivery Fleet'), findsOneWidget);
 
-    // Drain the bootstrap timer
-    await tester.pumpAndSettle(const Duration(seconds: 2));
+    // Stop auto refresh timer if Supabase was initialized
+    try {
+      Supabase.instance.client.auth.stopAutoRefresh();
+    } catch (_) {}
+
+    await tester.pump(const Duration(milliseconds: 100));
   });
 }

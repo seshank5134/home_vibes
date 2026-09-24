@@ -1,5 +1,8 @@
 /**
  * HomeVibes Admin Web — Main Dashboard Controller
+ * Professional SaaS Operations Console
+ * Currency: Indian Rupee (₹)
+ * Strict Requirement: No emojis, clean typography, responsive layout
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -36,12 +39,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const foodInventoryTbody = document.getElementById("foodInventoryTbody");
 
   // Filters & Actions
-  const filterTabs = document.querySelectorAll(".filter-tab");
   const btnRefreshOrders = document.getElementById("btnRefreshOrders");
   const btnViewAllOrders = document.getElementById("btnViewAllOrders");
   const btnSimulateOrder = document.getElementById("btnSimulateOrder");
   const btnOpenCloudModal = document.getElementById("btnOpenCloudModal");
-  const adminLogoutBtn = document.getElementById("adminLogoutBtn");
+  const orderSearchInput = document.getElementById("orderSearchInput");
 
   // Modals
   const assignDriverModal = document.getElementById("assignDriverModal");
@@ -56,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const cancelStatusBtn = document.getElementById("cancelStatusBtn");
   const confirmStatusBtn = document.getElementById("confirmStatusBtn");
   const selectNextStatus = document.getElementById("selectNextStatus");
+  const adminToastContainer = document.getElementById("adminToastContainer");
 
   // ============================================================================
   // INITIALIZATION
@@ -93,9 +96,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // Set topbar title
         switch (targetSection) {
           case "secDashboard": pageTitle.textContent = "Operations Dashboard"; break;
-          case "secOrders": pageTitle.textContent = "Live Orders Management"; break;
+          case "secOrders": pageTitle.textContent = "Live Orders Queue"; break;
           case "secDrivers": pageTitle.textContent = "Delivery Fleet Partners"; break;
-          case "secFood": pageTitle.textContent = "Food Catalogue & Inventory"; break;
+          case "secFood": pageTitle.textContent = "Meal Kits & Raw Materials Inventory"; break;
           case "secCloud": pageTitle.textContent = "Cloud Architecture & Viva Guide"; break;
         }
       });
@@ -112,13 +115,6 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector('[data-section="secCloud"]').click();
       });
     }
-
-    if (adminLogoutBtn) {
-      adminLogoutBtn.addEventListener("click", async () => {
-        await window.adminDataService.logout();
-        alert("Logged out of Admin Portal.");
-      });
-    }
   }
 
   // ============================================================================
@@ -126,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================================================
   async function refreshDashboard() {
     const metrics = await window.adminDataService.getDashboardMetrics();
-    metricRevenue.textContent = `$${metrics.revenue.toFixed(2)}`;
+    metricRevenue.innerHTML = `&#8377;${metrics.revenue.toLocaleString("en-IN")}`;
     metricActiveOrders.textContent = metrics.activeOrders;
     metricOnlineDrivers.textContent = metrics.onlineDrivers;
     metricCustomers.textContent = metrics.totalCustomers;
@@ -146,21 +142,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const previewList = AdminState.orders.slice(0, 5);
 
     if (previewList.length === 0) {
-      dashboardOrdersTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:2rem;">No orders currently active.</td></tr>`;
+      dashboardOrdersTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:2rem;">No orders currently active in dispatch queue.</td></tr>`;
       return;
     }
 
     previewList.forEach(o => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td style="font-weight:700; font-family:var(--font-display);">#${o.order_number}</td>
+        <td style="font-weight:700;">#${o.order_number || o.id.slice(0, 8)}</td>
         <td>${o.customer_name || o.profiles?.name || 'Customer'}</td>
         <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${o.delivery_address}</td>
-        <td style="font-weight:700;">$${Number(o.total_amount).toFixed(2)}</td>
-        <td>${getStatusBadge(o.status)}</td>
+        <td style="font-weight:700;">&#8377;${Number(o.total_amount).toFixed(0)}</td>
+        <td>${getStatusPill(o.status)}</td>
         <td>${o.driver_name || o.drivers?.profiles?.name || '<span style="color:var(--text-dim);">Unassigned</span>'}</td>
         <td>
-          <button class="btn btn-secondary btn-sm action-btn" data-id="${o.id}">Manage</button>
+          <button class="btn btn-secondary btn-sm action-btn" data-id="${o.id}">Update</button>
         </td>
       `;
 
@@ -175,29 +171,39 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderFullOrdersTable() {
     ordersFullTbody.innerHTML = "";
 
-    if (AdminState.orders.length === 0) {
-      ordersFullTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:3rem;">No orders match the selected filter.</td></tr>`;
+    let filtered = AdminState.orders;
+    if (orderSearchInput && orderSearchInput.value.trim()) {
+      const q = orderSearchInput.value.trim().toLowerCase();
+      filtered = filtered.filter(o => 
+        (o.order_number && o.order_number.toLowerCase().includes(q)) ||
+        (o.customer_name && o.customer_name.toLowerCase().includes(q)) ||
+        (o.delivery_address && o.delivery_address.toLowerCase().includes(q))
+      );
+    }
+
+    if (filtered.length === 0) {
+      ordersFullTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:3rem;">No orders match the filter criteria.</td></tr>`;
       return;
     }
 
-    AdminState.orders.forEach(o => {
+    filtered.forEach(o => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td style="font-weight:700; font-family:var(--font-display);">#${o.order_number}</td>
+        <td style="font-weight:700;">#${o.order_number || o.id.slice(0, 8)}</td>
         <td>
-          <div>${o.customer_name || o.profiles?.name || 'Customer'}</div>
+          <div style="font-weight:600;">${o.customer_name || o.profiles?.name || 'Customer'}</div>
           <div style="font-size:0.75rem; color:var(--text-muted);">${o.customer_phone || o.profiles?.phone || ''}</div>
         </td>
-        <td style="max-width:220px; font-size:0.85rem; color:var(--text-muted);">${o.delivery_address}</td>
-        <td style="font-weight:700;">$${Number(o.total_amount).toFixed(2)}</td>
-        <td>${getStatusBadge(o.status)}</td>
+        <td style="max-width:220px; font-size:0.82rem; color:var(--text-muted);">${o.delivery_address}</td>
+        <td style="font-weight:700;">&#8377;${Number(o.total_amount).toFixed(0)}</td>
+        <td>${getStatusPill(o.status)}</td>
         <td>
           ${o.driver_name || o.drivers?.profiles?.name 
-            ? `<span style="color:#10b981;">🛵 ${o.driver_name || o.drivers?.profiles?.name}</span>`
-            : `<button class="btn btn-primary btn-sm btn-assign" data-id="${o.id}">+ Assign Driver</button>`}
+            ? `<span style="font-weight:600; color:var(--text-main);">${o.driver_name || o.drivers?.profiles?.name}</span>`
+            : `<button class="btn btn-primary btn-sm btn-assign" data-id="${o.id}">Assign Driver</button>`}
         </td>
         <td>
-          <button class="btn btn-secondary btn-sm btn-status" data-id="${o.id}">Update Status</button>
+          <button class="btn btn-secondary btn-sm btn-status" data-id="${o.id}">Advance Status</button>
         </td>
       `;
 
@@ -212,17 +218,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function getStatusBadge(status) {
-    let cls = "badge-placed";
-    if (status === "CONFIRMED") cls = "badge-confirmed";
-    if (status === "PREPARING") cls = "badge-preparing";
-    if (status === "READY_FOR_PICKUP") cls = "badge-ready";
-    if (status === "DRIVER_ASSIGNED") cls = "badge-assigned";
-    if (status === "OUT_FOR_DELIVERY") cls = "badge-out";
-    if (status === "DELIVERED") cls = "badge-delivered";
-    if (status === "CANCELLED") cls = "badge-cancelled";
-
-    return `<span class="badge ${cls}">${status.replaceAll('_', ' ')}</span>`;
+  function getStatusPill(status) {
+    const s = (status || "").toLowerCase();
+    let label = s.replace(/_/g, " ");
+    return `<span class="status-pill ${s}">${label}</span>`;
   }
 
   // ============================================================================
@@ -240,24 +239,24 @@ document.addEventListener("DOMContentLoaded", () => {
           ${d.name || d.profiles?.name}
           <div style="font-size:0.75rem; color:var(--text-muted);">${d.phone || d.profiles?.phone || ''}</div>
         </td>
-        <td>${d.vehicle_type} (${d.vehicle_number || 'Standard'})</td>
+        <td>${d.vehicle_type} (${d.vehicle_number || 'Electric'})</td>
         <td>
-          <span class="badge ${isOnline ? 'badge-delivered' : 'badge-cancelled'}">
-            ${isOnline ? '● ONLINE' : '○ OFFLINE'}
+          <span class="status-pill ${isOnline ? 'delivered' : 'placed'}">
+            ${isOnline ? 'Online' : 'Offline'}
           </span>
         </td>
-        <td style="font-family:monospace; font-size:0.8rem; color:var(--text-muted);">
-          ${d.current_latitude ? `${d.current_latitude.toFixed(4)}, ${d.current_longitude.toFixed(4)}` : 'Location unavailable'}
+        <td style="font-family:monospace; font-size:0.78rem; color:var(--text-muted);">
+          ${d.current_latitude ? `${d.current_latitude.toFixed(4)}, ${d.current_longitude.toFixed(4)}` : 'Coordinates active'}
         </td>
         <td style="font-weight:700;">${d.total_deliveries}</td>
-        <td style="color:#f59e0b; font-weight:700;">⭐ ${(d.rating || 5.0).toFixed(1)}</td>
+        <td style="font-weight:700; color:var(--text-main);">${(d.rating || 4.9).toFixed(1)} / 5.0</td>
       `;
       driversTbody.appendChild(tr);
     });
   }
 
   // ============================================================================
-  // FOOD INVENTORY
+  // FOOD / MEAL KITS INVENTORY
   // ============================================================================
   async function loadFoodInventory() {
     AdminState.foodItems = await window.adminDataService.getFoodItems();
@@ -267,8 +266,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>
-          <div style="display:flex; align-items:center; gap:0.75rem;">
-            <img src="${item.image_url}" style="width:40px; height:40px; border-radius:6px; object-fit:cover;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <img src="${item.image_url}" style="width:40px; height:40px; border-radius:6px; object-fit:cover; border:1px solid var(--card-border);">
             <div>
               <div style="font-weight:700;">${item.name}</div>
               <div style="font-size:0.75rem; color:var(--text-muted); max-width:240px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
@@ -277,15 +276,15 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
           </div>
         </td>
-        <td><span style="font-size:0.8rem; color:var(--text-muted);">${item.categories?.name || 'Delicacy'}</span></td>
-        <td style="font-weight:700; font-family:var(--font-display);">$${Number(item.price).toFixed(2)}</td>
-        <td>⏱️ ${item.prep_time_minutes || 20}m</td>
-        <td style="color:#f59e0b; font-weight:600;">⭐ ${(item.rating || 5.0).toFixed(1)}</td>
+        <td><span style="font-size:0.8rem; color:var(--text-muted);">${item.categories?.name || 'Meal Kit'}</span></td>
+        <td style="font-weight:700;">&#8377;${Number(item.price).toFixed(0)}</td>
+        <td>${item.cook_time_minutes || 20} mins</td>
+        <td><span class="status-pill placed">${item.spice_level || 'Medium'}</span></td>
         <td>
-          <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
             <input type="checkbox" class="stock-toggle" data-id="${item.id}" ${item.is_available ? 'checked' : ''}>
-            <span style="font-size:0.8rem; color:${item.is_available ? '#10b981' : '#64748b'};">
-              ${item.is_available ? 'In Stock' : 'Disabled'}
+            <span style="font-size:0.8rem; font-weight:600; color:${item.is_available ? 'var(--success)' : 'var(--text-muted)'};">
+              ${item.is_available ? 'Available' : 'Paused'}
             </span>
           </label>
         </td>
@@ -294,8 +293,9 @@ document.addEventListener("DOMContentLoaded", () => {
       tr.querySelector(".stock-toggle").addEventListener("change", async (e) => {
         const isChecked = e.target.checked;
         await window.adminDataService.toggleFoodAvailability(item.id, isChecked);
-        e.target.nextElementSibling.textContent = isChecked ? 'In Stock' : 'Disabled';
-        e.target.nextElementSibling.style.color = isChecked ? '#10b981' : '#64748b';
+        e.target.nextElementSibling.textContent = isChecked ? 'Available' : 'Paused';
+        e.target.nextElementSibling.style.color = isChecked ? 'var(--success)' : 'var(--text-muted)';
+        showAdminToast(`Updated availability for ${item.name}`);
       });
 
       foodInventoryTbody.appendChild(tr);
@@ -306,43 +306,42 @@ document.addEventListener("DOMContentLoaded", () => {
   // MODALS LOGIC
   // ============================================================================
   function setupModals() {
-    // Filter Tabs
-    filterTabs.forEach(tab => {
-      tab.addEventListener("click", () => {
-        filterTabs.forEach(t => t.classList.remove("active"));
-        tab.classList.add("active");
-        AdminState.statusFilter = tab.dataset.status;
-        loadOrders();
-      });
-    });
-
     if (btnRefreshOrders) {
-      btnRefreshOrders.addEventListener("click", () => loadOrders());
+      btnRefreshOrders.addEventListener("click", () => {
+        loadOrders();
+        showAdminToast("Orders queue refreshed");
+      });
+    }
+
+    if (orderSearchInput) {
+      orderSearchInput.addEventListener("input", () => renderFullOrdersTable());
     }
 
     // Driver Assign Modal
-    closeAssignModal.addEventListener("click", () => assignDriverModal.classList.remove("active"));
-    cancelAssignBtn.addEventListener("click", () => assignDriverModal.classList.remove("active"));
+    closeAssignModal.addEventListener("click", () => assignDriverModal.classList.remove("open"));
+    cancelAssignBtn.addEventListener("click", () => assignDriverModal.classList.remove("open"));
     confirmAssignBtn.addEventListener("click", async () => {
       const driverId = selectDriverDropdown.value;
       if (AdminState.selectedOrderIdForAssign && driverId) {
         await window.adminDataService.assignDriver(AdminState.selectedOrderIdForAssign, driverId);
-        assignDriverModal.classList.remove("active");
+        assignDriverModal.classList.remove("open");
         await loadOrders();
         await refreshDashboard();
+        showAdminToast("Fleet partner assigned to dispatch order");
       }
     });
 
     // Status Advance Modal
-    closeStatusModal.addEventListener("click", () => updateStatusModal.classList.remove("active"));
-    cancelStatusBtn.addEventListener("click", () => updateStatusModal.classList.remove("active"));
+    closeStatusModal.addEventListener("click", () => updateStatusModal.classList.remove("open"));
+    cancelStatusBtn.addEventListener("click", () => updateStatusModal.classList.remove("open"));
     confirmStatusBtn.addEventListener("click", async () => {
       const nextStatus = selectNextStatus.value;
       if (AdminState.selectedOrderIdForStatus && nextStatus) {
         await window.adminDataService.updateOrderStatus(AdminState.selectedOrderIdForStatus, nextStatus);
-        updateStatusModal.classList.remove("active");
+        updateStatusModal.classList.remove("open");
         await loadOrders();
         await refreshDashboard();
+        showAdminToast(`Order advanced to status: ${nextStatus}`);
       }
     });
 
@@ -354,12 +353,12 @@ document.addEventListener("DOMContentLoaded", () => {
           order_number: "HV-" + Math.floor(100000 + Math.random() * 900000),
           customer_name: "Kavya Patel",
           customer_phone: "+91 98765 43217",
-          status: "PLACED",
-          subtotal: 31.98,
-          delivery_fee: 2.50,
-          total_amount: 34.48,
+          status: "placed",
+          subtotal: 598.00,
+          delivery_fee: 40.00,
+          total_amount: 638.00,
           delivery_address: "Church Street, Ashok Nagar, Bengaluru",
-          payment_method: "CASH_ON_DELIVERY",
+          payment_method: "UPI",
           created_at: new Date().toISOString()
         };
 
@@ -369,14 +368,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         await loadOrders();
         await refreshDashboard();
-        alert(`New order #${sampleOrder.order_number} received from Kavya Patel!`);
+        showAdminToast(`Simulated new incoming order #${sampleOrder.order_number}`);
       });
     }
   }
 
   function openAssignModal(order) {
     AdminState.selectedOrderIdForAssign = order.id;
-    assignOrderDetails.textContent = `Order #${order.order_number} • Total: $${Number(order.total_amount).toFixed(2)} • Destination: ${order.delivery_address}`;
+    assignOrderDetails.textContent = `Order #${order.order_number || order.id.slice(0, 8)} • Total: ₹${Number(order.total_amount).toFixed(0)} • Destination: ${order.delivery_address}`;
 
     selectDriverDropdown.innerHTML = AdminState.drivers
       .filter(d => d.is_online)
@@ -390,14 +389,23 @@ document.addEventListener("DOMContentLoaded", () => {
       confirmAssignBtn.disabled = false;
     }
 
-    assignDriverModal.classList.add("active");
+    assignDriverModal.classList.add("open");
   }
 
   function openStatusModal(order) {
     AdminState.selectedOrderIdForStatus = order.id;
-    updateStatusModal.classList.add("active");
+    updateStatusModal.classList.add("open");
   }
 
-  // Initialize Admin App
+  function showAdminToast(msg) {
+    if (!adminToastContainer) return;
+    const toast = document.createElement("div");
+    toast.className = "admin-toast";
+    toast.textContent = msg;
+    adminToastContainer.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+
+  // Initialize
   init();
 });

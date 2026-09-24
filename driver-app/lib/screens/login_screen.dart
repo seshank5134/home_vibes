@@ -75,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Center(
-                  child: Text('🛵', style: TextStyle(fontSize: 28)),
+                  child: Icon(Icons.two_wheeler, size: 28, color: Colors.white),
                 ),
               ),
               const SizedBox(height: 24),

@@ -131,7 +131,7 @@ class _DeliveriesTab extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            '🛵 ${driver.vehicleType} (${driver.vehicleNumber})',
+                            '${driver.vehicleType} (${driver.vehicleNumber})',
                             style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
                           ),
                         ],
@@ -190,8 +190,8 @@ class _DeliveriesTab extends StatelessWidget {
                   Expanded(
                     child: _buildMetricCard(
                       title: "Est. Earnings",
-                      value: "\$${(delivery.deliveryHistory.length * 3.50).toStringAsFixed(0)}",
-                      icon: Icons.attach_money,
+                      value: "₹${(delivery.deliveryHistory.length * 50).toStringAsFixed(0)}",
+                      icon: Icons.currency_rupee,
                       color: const Color(0xFF38BDF8),
                     ),
                   ),
@@ -485,7 +485,7 @@ class _DeliveriesTab extends StatelessWidget {
               const Icon(Icons.lunch_dining_outlined, size: 16, color: Color(0xFF94A3B8)),
               const SizedBox(width: 6),
               Text(
-                '${order.items.length} items • \$${order.totalAmount.toStringAsFixed(2)} (${order.paymentMethod == "CASH_ON_DELIVERY" ? "Cash" : "Prepaid"})',
+                '${order.items.length} items • ₹${order.totalAmount.toStringAsFixed(0)} (${order.paymentMethod == "CASH_ON_DELIVERY" ? "Cash" : "Prepaid"})',
                 style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
               ),
             ],
@@ -509,7 +509,7 @@ class _DeliveriesTab extends StatelessWidget {
                 backgroundColor: const Color(0xFFFF5E36),
                 padding: const EdgeInsets.symmetric(vertical: 10),
               ),
-              child: const Text('Accept Delivery (Earn \$3.50)'),
+              child: const Text('Accept Delivery (Earn ₹50)'),
             ),
           ),
         ],

@@ -19,7 +19,7 @@ class AdminDataService {
       try {
         this.client = window.supabase.createClient(url, key);
         this.isCloud = true;
-        console.log("☁️ Admin Web connected to Supabase:", url);
+        console.log("[Admin] Connected to Supabase:", url);
       } catch (e) {
         this.isCloud = false;
       }
@@ -103,13 +103,13 @@ class AdminDataService {
       const { count: activeOrders } = await this.client
         .from("orders")
         .select("*", { count: "exact", head: true })
-        .not("status", "in", '("DELIVERED","CANCELLED")');
-      const { count: completedOrders } = await this.client.from("orders").select("*", { count: "exact", head: true }).eq("status", "DELIVERED");
+        .not("status", "in", '("delivered","cancelled")');
+      const { count: completedOrders } = await this.client.from("orders").select("*", { count: "exact", head: true }).eq("status", "delivered");
       const { count: onlineDrivers } = await this.client.from("drivers").select("*", { count: "exact", head: true }).eq("is_online", true);
       const { count: totalCustomers } = await this.client.from("profiles").select("*", { count: "exact", head: true }).eq("role", "CUSTOMER");
       const { count: totalFoodItems } = await this.client.from("food_items").select("*", { count: "exact", head: true });
 
-      const { data: revData } = await this.client.from("orders").select("total_amount").eq("status", "DELIVERED");
+      const { data: revData } = await this.client.from("orders").select("total_amount").eq("status", "delivered");
       const revenue = (revData || []).reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
 
       return {
@@ -123,16 +123,16 @@ class AdminDataService {
       };
     }
 
-    // Mock Metrics
+    // Mock Metrics in INR
     const localOrders = JSON.parse(localStorage.getItem("HOMEVIBES_MOCK_ORDERS") || "[]");
     return {
-      totalOrders: 12 + localOrders.length,
-      activeOrders: 3 + localOrders.filter(o => o.status !== "DELIVERED" && o.status !== "CANCELLED").length,
-      completedOrders: 9,
+      totalOrders: 28 + localOrders.length,
+      activeOrders: 3 + localOrders.filter(o => o.status !== "delivered" && o.status !== "cancelled").length,
+      completedOrders: 25,
       onlineDrivers: 2,
-      totalCustomers: 18,
+      totalCustomers: 24,
       totalFoodItems: 10,
-      revenue: 342.50
+      revenue: 18450.00
     };
   }
 
@@ -154,7 +154,7 @@ class AdminDataService {
         .order("created_at", { ascending: false });
 
       if (statusFilter && statusFilter !== "ALL") {
-        query = query.eq("status", statusFilter);
+        query = query.eq("status", statusFilter.toLowerCase());
       }
 
       const { data, error } = await query;
@@ -162,21 +162,21 @@ class AdminDataService {
       return data;
     }
 
-    // Mock Orders
+    // Mock Orders in INR
     let list = [
       {
         id: "ord-mock-1",
         order_number: "HV-847291",
         customer_name: "Ananya Sharma",
         customer_phone: "+91 98765 43212",
-        status: "OUT_FOR_DELIVERY",
-        subtotal: 28.98,
-        delivery_fee: 2.50,
-        total_amount: 31.48,
+        status: "out_for_delivery",
+        subtotal: 698.00,
+        delivery_fee: 40.00,
+        total_amount: 738.00,
         delivery_address: "100 Feet Road, HAL 2nd Stage, Indiranagar, Bengaluru",
-        payment_method: "CASH_ON_DELIVERY",
+        payment_method: "UPI",
         created_at: new Date(Date.now() - 15 * 60000).toISOString(),
-        driver_name: "Ravi Kumar (Speedy Driver)",
+        driver_name: "Ravi Kumar",
         driver_id: "d2222222-bbbb-2222-bbbb-222222222222"
       },
       {
@@ -184,12 +184,12 @@ class AdminDataService {
         order_number: "HV-519203",
         customer_name: "Karan Mehta",
         customer_phone: "+91 98765 43215",
-        status: "PREPARING",
-        subtotal: 24.50,
-        delivery_fee: 2.50,
-        total_amount: 27.00,
+        status: "preparing",
+        subtotal: 538.00,
+        delivery_fee: 40.00,
+        total_amount: 578.00,
         delivery_address: "Koramangala 4th Block, 80ft Road, Bengaluru",
-        payment_method: "ONLINE_MOCK",
+        payment_method: "COD",
         created_at: new Date(Date.now() - 25 * 60000).toISOString(),
         driver_name: null,
         driver_id: null
@@ -199,12 +199,12 @@ class AdminDataService {
         order_number: "HV-102948",
         customer_name: "Siddharth Rao",
         customer_phone: "+91 98765 43219",
-        status: "READY_FOR_PICKUP",
-        subtotal: 42.00,
-        delivery_fee: 0.00,
-        total_amount: 42.00,
+        status: "ready_for_pickup",
+        subtotal: 349.00,
+        delivery_fee: 40.00,
+        total_amount: 389.00,
         delivery_address: "Lavelle Road, Shanthala Nagar, Bengaluru",
-        payment_method: "ONLINE_MOCK",
+        payment_method: "UPI",
         created_at: new Date(Date.now() - 35 * 60000).toISOString(),
         driver_name: null,
         driver_id: null

@@ -30,13 +30,13 @@ class HomeVibesDataService {
           }
         });
         this.isCloud = true;
-        console.log("☁️ Connected to live Supabase cloud backend:", url);
+        console.log("[Supabase] Connected to live cloud backend:", url);
       } catch (err) {
-        console.warn("⚠️ Error initializing live Supabase client, falling back to local adapter:", err);
+        console.warn("[Supabase] Error initializing live client, falling back to local adapter:", err);
         this.isCloud = false;
       }
     } else {
-      console.log("ℹ️ Running in resilient Local/Mock mode (Supabase URL/Key not yet configured).");
+      console.log("[Supabase] Running in local adapter mode (Supabase URL/Key not yet configured).");
       this.isCloud = false;
     }
 
@@ -533,3 +533,4 @@ function split_email(e) {
 }
 
 window.dataService = new HomeVibesDataService();
+window.authService = window.dataService;

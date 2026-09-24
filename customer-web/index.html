@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HomeVibes — Cloud-Native Food Delivery</title>
-  <meta name="description" content="Production-style Cloud-Native food delivery application powered by Supabase, PostgreSQL, and Flutter.">
+  <title>HomeVibes — Fresh Indian Meal Kits & Chef Cooking Scripts</title>
+  <meta name="description" content="Fresh Indian DIY meal kits with pre-cut raw materials and step-by-step chef cooking scripts delivered straight to your door.">
 
-  <!-- Favicon -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍔</text></svg>">
+  <!-- Favicon (Clean SVG Mark, no emojis) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23E85D3F%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M6 13.87A8 8 0 0 1 14 6h.87a6 6 0 0 1 5 6v1a2 2 0 0 1-2 2H6Z%22/><path d=%22M6 17v4%22/><path d=%22M10 17v4%22/><path d=%22M14 17v4%22/></svg>">
 
-  <!-- Stylesheets -->
+  <!-- Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
   
-  <!-- Leaflet CSS for guaranteed high-fidelity interactive map tracking -->
+  <!-- Leaflet CSS for Map Tracking -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
   <!-- Supabase JS SDK (Official CDN) -->
@@ -29,12 +29,17 @@
   <header class="navbar">
     <div class="nav-container">
       <a href="#" class="brand-logo" id="brandHomeBtn">
-        <div class="brand-icon">🔥</div>
-        <div class="brand-text">Home<span>Vibes</span></div>
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div class="brand-title">Home<span>Vibes</span></div>
       </a>
 
       <ul class="nav-links">
-        <li><a href="#menu" class="nav-link active" id="navMenuBtn">Explore Menu</a></li>
+        <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+        <li><a href="#menu" class="nav-link active" id="navMenuBtn">Meal Kits</a></li>
         <li><a href="#orders" class="nav-link" id="navOrdersBtn">My Orders</a></li>
         <li><a href="#tracking" class="nav-link" id="navTrackingBtn">Live Tracking</a></li>
       </ul>
@@ -42,20 +47,22 @@
       <div class="nav-actions">
         <!-- Cloud Architecture Viva Modal Trigger -->
         <button class="cloud-badge-btn" id="openCloudModalBtn" title="View Cloud Computing Architecture">
-          <div class="pulse-dot"></div>
-          <span>Cloud PaaS Active</span>
+          <span class="pulse-dot"></span>
+          <span>Cloud Hub</span>
         </button>
 
         <!-- Cart Trigger -->
         <button class="cart-btn" id="openCartBtn" aria-label="View Shopping Cart">
-          <span>🛒</span>
-          <span class="cart-label">Cart</span>
+          <svg class="cart-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <span>Cart</span>
           <span class="cart-counter" id="cartBadge">0</span>
         </button>
 
         <!-- User Authentication / Profile Button -->
         <div id="authNavContainer">
-          <button class="btn-primary" id="openAuthModalBtn">
+          <button class="btn btn-secondary btn-sm" id="openAuthModalBtn">
             <span>Sign In</span>
           </button>
         </div>
@@ -71,29 +78,68 @@
     <!-- Hero Banner -->
     <section class="hero-section">
       <div class="hero-content">
-        <div class="kitchen-live-pill">
-          <div class="green-dot"></div>
-          <span>Central Kitchen Hub: Bengaluru Central (Active)</span>
+        <div class="hero-tag">
+          <span class="hero-tag-dot"></span>
+          <span>Fresh Raw Material Dispatch Hub Active</span>
         </div>
-        <h1>Fresh Gourmet Food, <br><span class="hero-highlight">Cloud-Speed Delivery.</span></h1>
-        <p>Crafted in our state-of-the-art central cloud kitchen and dispatched with real-time GPS telemetry straight to your doorstep.</p>
+        <h1 class="hero-title">Fresh Indian Meal Kits, <br><span>Cooked by You in 15 Mins.</span></h1>
+        <p class="hero-subtitle">Pre-portioned raw ingredients, freshly ground gravies, and chef cooking scripts delivered directly from local vendors. No restaurant wait times.</p>
         
-        <div class="hero-search-bar">
-          <input type="text" id="foodSearchInput" placeholder="Search handcrafted burgers, ramen, artisan pizzas..." autocomplete="off">
-          <button class="btn-primary" id="searchSubmitBtn">Search</button>
+        <div class="hero-search-wrap">
+          <input type="text" id="foodSearchInput" class="hero-search-input" placeholder="Search biryani kits, paneer butter masala, curries..." autocomplete="off">
+          <button class="btn btn-primary" id="searchSubmitBtn">Search Kits</button>
+        </div>
+
+        <div class="hero-features">
+          <div class="hero-feature-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Pre-cut & measured</span>
+          </div>
+          <div class="hero-feature-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Step-by-step chef scripts</span>
+          </div>
+          <div class="hero-feature-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Direct vendor sourcing</span>
+          </div>
         </div>
       </div>
 
-      <div class="hero-preview-card">
-        <div class="hero-img-wrap">
-          <img src="https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=600&auto=format&fit=crop&q=80" alt="Truffle Smash Burger">
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div class="hero-image-card">
+        <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&auto=format&fit=crop&q=80" alt="Hyderabadi Biryani Kit">
+        <div class="hero-image-meta">
           <div>
-            <div style="font-weight:700; font-size:1.1rem;">Truffle Double Smash</div>
-            <div style="font-size:0.85rem; color:var(--text-muted);">⭐ 4.95 (128 reviews)</div>
+            <h4>Hyderabadi Dum Chicken Biryani Kit</h4>
+            <p>Ready to dum cook in 20 mins &bull; 2 Servings</p>
           </div>
-          <div style="font-family:var(--font-display); font-size:1.3rem; font-weight:700; color:var(--primary);">$12.99</div>
+          <div class="price">&#8377;349</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works-section" id="how-it-works">
+      <div class="section-eyebrow">The HomeVibes Difference</div>
+      <div class="section-header">
+        <h2 class="section-title">How Our DIY Food Delivery Works</h2>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card">
+          <span class="step-number">Step 01</span>
+          <h3>Order Raw Material Kit</h3>
+          <p>Choose your favorite authentic Indian recipe. Our vendor hub packs farm-fresh meats, paneer, and spice bases in sealed temperature-safe packs.</p>
+        </div>
+        <div class="step-card">
+          <span class="step-number">Step 02</span>
+          <h3>Hyper-Fast Hub Delivery</h3>
+          <p>Because there is no waiting for kitchen cooking or preparation delays, your order is dispatched immediately by our delivery fleet.</p>
+        </div>
+        <div class="step-card">
+          <span class="step-number">Step 03</span>
+          <h3>Cook with Chef Script</h3>
+          <p>Follow our simple 4-step chef instructions included in every kit. Enjoy hot, hygienic, homestyle Indian meals right off your own flame.</p>
         </div>
       </div>
     </section>
@@ -101,13 +147,13 @@
     <!-- Category Filter Bar -->
     <section class="category-section" id="menu">
       <div class="section-header">
-        <h2 class="section-title"><span>🍽️</span> Gourmet Menu Catalogue</h2>
-        <span style="font-size:0.9rem; color:var(--text-muted);" id="itemCountLabel">Showing 10 items</span>
+        <h2 class="section-title">Browse Meal Kits & Recipes</h2>
+        <span style="font-size:0.85rem; color:var(--text-secondary);" id="itemCountLabel">Showing items</span>
       </div>
 
       <div class="category-scroll" id="categoryPillsContainer">
         <div class="category-chip active" data-category-id="ALL">
-          <span>✨</span> All Delicacies
+          All Kits
         </div>
         <!-- Injected via JavaScript -->
       </div>
@@ -123,37 +169,58 @@
   </main>
 
   <!-- ============================================================================
-       SHOPPING CART SLIDE-IN DRAWER
+       RECIPE & COOKING SCRIPT MODAL (Interactive DIY Guide)
        ============================================================================ -->
-  <div class="drawer-backdrop" id="cartBackdrop"></div>
+  <div class="modal-backdrop" id="recipeModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="recipeModalTitle">Recipe & Cooking Script</h3>
+        <button class="btn-icon-close" id="closeRecipeModalBtn" aria-label="Close modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="modal-body" id="recipeModalBody">
+        <!-- Injected via app.js -->
+      </div>
+
+      <div class="modal-footer" id="recipeModalFooter">
+        <!-- Injected via app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       SHOPPING CART DRAWER (Slide-over)
+       ============================================================================ -->
+  <div class="cart-backdrop" id="cartBackdrop"></div>
   <aside class="cart-drawer" id="cartDrawer">
-    <div class="drawer-header">
-      <div class="drawer-title">
-        <span>🛒</span> Your Cart
-      </div>
-      <button class="drawer-close-btn" id="closeCartBtn">&times;</button>
+    <div class="cart-header">
+      <div class="cart-header-title">Your Kit Order</div>
+      <button class="btn-icon-close" id="closeCartBtn" aria-label="Close cart">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
     </div>
 
-    <div class="cart-items-list" id="cartItemsList">
-      <!-- Items dynamically populated -->
+    <div class="cart-body" id="cartItemsList">
+      <!-- Items dynamically populated via app.js -->
     </div>
 
-    <div class="drawer-footer" id="cartFooter">
-      <div class="calc-row">
-        <span>Subtotal</span>
-        <span id="cartSubtotal">$0.00</span>
+    <div class="cart-footer">
+      <div class="cart-summary-line">
+        <span>Items Subtotal</span>
+        <span id="cartSubtotal">&#8377;0</span>
       </div>
-      <div class="calc-row">
-        <span>Delivery Fee (Central Kitchen)</span>
-        <span id="cartDeliveryFee">$2.50</span>
+      <div class="cart-summary-line">
+        <span>Hub Delivery Fee</span>
+        <span id="cartDeliveryFee">&#8377;40</span>
       </div>
-      <div class="calc-row calc-total">
+      <div class="cart-summary-line total">
         <span>Total Payable</span>
-        <span id="cartTotal">$0.00</span>
+        <span id="cartTotal">&#8377;0</span>
       </div>
-
-      <button class="btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem;" id="proceedCheckoutBtn">
-        Proceed to Checkout →
+      <button class="btn btn-primary" id="proceedCheckoutBtn" style="width: 100%;">
+        <span>Proceed to Checkout</span>
       </button>
     </div>
   </aside>
@@ -161,179 +228,128 @@
   <!-- ============================================================================
        CHECKOUT MODAL
        ============================================================================ -->
-  <div class="modal-overlay" id="checkoutModal">
-    <div class="modal-box">
+  <div class="modal-backdrop" id="checkoutModal">
+    <div class="modal-card">
       <div class="modal-header">
-        <h3 style="font-family: var(--font-display); font-size: 1.4rem;">🧾 Confirm Delivery & Order</h3>
-        <button class="drawer-close-btn" id="closeCheckoutBtn">&times;</button>
+        <h3 class="modal-title">Complete Your Order</h3>
+        <button class="btn-icon-close" id="closeCheckoutBtn" aria-label="Close modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Delivery Address</label>
-        <select class="form-select" id="checkoutAddressSelect">
-          <!-- Populated from addresses table or mock -->
-        </select>
-      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="checkoutAddressSelect">Delivery Location</label>
+          <select id="checkoutAddressSelect" class="form-select">
+            <option value="Koramangala 4th Block, Bengaluru">Koramangala 4th Block, Bengaluru (Home)</option>
+            <option value="Indiranagar 100ft Road, Bengaluru">Indiranagar 100ft Road, Bengaluru (Work)</option>
+            <option value="HSR Layout Sector 2, Bengaluru">HSR Layout Sector 2, Bengaluru (Other)</option>
+            <option value="Whitefield Main Road, Bengaluru">Whitefield Main Road, Bengaluru (Campus)</option>
+          </select>
+          <div class="form-help">Dispatched from the nearest raw materials supply hub.</div>
+        </div>
 
-      <div class="form-group">
-        <label class="form-label">Payment Method</label>
-        <select class="form-select" id="checkoutPaymentMethod">
-          <option value="CASH_ON_DELIVERY">💵 Cash on Delivery (Standard)</option>
-          <option value="ONLINE_MOCK">💳 Instant Mock Online Card (Simulated Cloud)</option>
-        </select>
-      </div>
+        <div class="form-group">
+          <label class="form-label" for="checkoutPaymentMethod">Payment Method</label>
+          <select id="checkoutPaymentMethod" class="form-select">
+            <option value="UPI">UPI (GPay / PhonePe / Paytm / BHIM)</option>
+            <option value="Card">Credit / Debit Card</option>
+            <option value="NetBanking">Net Banking</option>
+            <option value="COD">Cash / Pay on Delivery</option>
+          </select>
+        </div>
 
-      <div class="form-group">
-        <label class="form-label">Special Delivery Instructions (Optional)</label>
-        <textarea class="form-textarea" id="checkoutNotes" rows="2" placeholder="e.g. Leave at door, extra napkins, buzzer code #402"></textarea>
-      </div>
+        <div class="form-group">
+          <label class="form-label" for="checkoutNotes">Delivery & Kit Packaging Notes</label>
+          <textarea id="checkoutNotes" class="form-textarea" rows="2" placeholder="e.g. Leave package with security guard, include extra green chilies..."></textarea>
+        </div>
 
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem;">
-        <div style="font-weight: 600; margin-bottom: 0.5rem;">Order Summary</div>
-        <div id="checkoutItemsSummary" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;"></div>
-        <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.15rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.5rem;">
-          <span>Grand Total</span>
-          <span id="checkoutGrandTotal" style="color: var(--primary);">$0.00</span>
+        <div class="form-group" style="margin-top: 20px;">
+          <label class="form-label">Order Summary</label>
+          <div id="checkoutItemsSummary" style="background: var(--bg-surface-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; font-size: 0.85rem;">
+            <!-- Summary rows populated dynamically -->
+          </div>
         </div>
       </div>
 
-      <button class="btn-primary" style="width: 100%; justify-content: center; padding: 0.9rem; font-size: 1.05rem;" id="submitOrderBtn">
-        🚀 Place Cloud Order
-      </button>
+      <div class="modal-footer">
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+          <span style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase;">Grand Total</span>
+          <span style="font-size:1.15rem; font-weight:800; color:var(--text-primary);" id="checkoutGrandTotal">&#8377;0</span>
+        </div>
+        <button class="btn btn-secondary" id="cancelCheckoutBtn">Cancel</button>
+        <button class="btn btn-primary" id="submitOrderBtn">Place Kit Order</button>
+      </div>
     </div>
   </div>
 
   <!-- ============================================================================
-       LIVE ORDER TRACKING MODAL (Realtime & Live Map)
+       ORDER TRACKING MODAL (Telemetry & Realtime Map)
        ============================================================================ -->
-  <div class="modal-overlay" id="trackingModal">
-    <div class="modal-box" style="width: 780px;">
+  <div class="modal-backdrop" id="trackingModal">
+    <div class="modal-card" style="max-width: 680px;">
       <div class="modal-header">
         <div>
-          <h3 style="font-family: var(--font-display); font-size: 1.4rem;">📍 Live Order Telemetry</h3>
-          <div style="font-size: 0.85rem; color: var(--text-muted);" id="trackingOrderSubtitle">Order #HV-847291</div>
+          <h3 class="modal-title">Live Delivery Telemetry</h3>
+          <div style="font-size: 0.8rem; color: var(--text-secondary);" id="trackingOrderSubtitle">Tracking Order #--</div>
         </div>
-        <button class="drawer-close-btn" id="closeTrackingBtn">&times;</button>
-      </div>
-
-      <!-- Realtime Stepper -->
-      <div class="stepper-container" id="trackingStepper">
-        <div class="stepper-step completed" id="step-PLACED">
-          <div class="step-marker">✓</div>
-          <div class="step-info">
-            <div class="step-title">Order Placed</div>
-            <div class="step-desc">Received by HomeVibes cloud backend</div>
-          </div>
-        </div>
-
-        <div class="stepper-step completed" id="step-CONFIRMED">
-          <div class="step-marker">✓</div>
-          <div class="step-info">
-            <div class="step-title">Order Confirmed</div>
-            <div class="step-desc">Accepted by central kitchen dispatch</div>
-          </div>
-        </div>
-
-        <div class="stepper-step completed" id="step-PREPARING">
-          <div class="step-marker">✓</div>
-          <div class="step-info">
-            <div class="step-title">Cooking in Progress</div>
-            <div class="step-desc">Master chefs are crafting your fresh order</div>
-          </div>
-        </div>
-
-        <div class="stepper-step completed" id="step-READY_FOR_PICKUP">
-          <div class="step-marker">✓</div>
-          <div class="step-info">
-            <div class="step-title">Ready for Pickup</div>
-            <div class="step-desc">Packed and sealed for driver handoff</div>
-          </div>
-        </div>
-
-        <div class="stepper-step completed" id="step-DRIVER_ASSIGNED">
-          <div class="step-marker">✓</div>
-          <div class="step-info">
-            <div class="step-title">Driver Assigned</div>
-            <div class="step-desc" id="trackingDriverDesc">Ravi Kumar (Speedy Driver) • KA-01-HV-2026</div>
-          </div>
-        </div>
-
-        <div class="stepper-step active" id="step-OUT_FOR_DELIVERY">
-          <div class="step-marker">🛵</div>
-          <div class="step-info">
-            <div class="step-title">Out for Delivery</div>
-            <div class="step-desc">Driver is streaming live GPS telemetry on route</div>
-          </div>
-        </div>
-
-        <div class="stepper-step" id="step-DELIVERED">
-          <div class="step-marker">🍽️</div>
-          <div class="step-info">
-            <div class="step-title">Delivered</div>
-            <div class="step-desc">Enjoy your meal!</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Live GPS Map View -->
-      <div class="tracking-map-box">
-        <div id="trackingMap"></div>
-      </div>
-
-      <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-        <button class="btn-secondary" style="flex: 1; justify-content: center;" id="simulateDriverMovementBtn">
-          📍 Test Simulated GPS Stream
-        </button>
-        <button class="btn-primary" style="flex: 1; justify-content: center;" id="openReviewBtn">
-          ⭐ Rate Order
+        <button class="btn-icon-close" id="closeTrackingBtn" aria-label="Close modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
-    </div>
-  </div>
 
-  <!-- ============================================================================
-       AUTHENTICATION MODAL
-       ============================================================================ -->
-  <div class="modal-overlay" id="authModal">
-    <div class="modal-box" style="width: 450px;">
-      <div class="modal-header">
-        <h3 style="font-family: var(--font-display); font-size: 1.35rem;" id="authModalTitle">Sign In to HomeVibes</h3>
-        <button class="drawer-close-btn" id="closeAuthBtn">&times;</button>
+      <div class="modal-body">
+        <!-- Stepper (Strictly NO emojis) -->
+        <div class="tracking-stepper">
+          <div class="track-step done" id="stepPlaced">
+            <div class="step-circle">1</div>
+            <div class="step-label">Placed</div>
+          </div>
+          <div class="track-step done" id="stepConfirmed">
+            <div class="step-circle">2</div>
+            <div class="step-label">Confirmed</div>
+          </div>
+          <div class="track-step active" id="stepPreparing">
+            <div class="step-circle">3</div>
+            <div class="step-label">Packaging</div>
+          </div>
+          <div class="track-step" id="stepPickedUp">
+            <div class="step-circle">4</div>
+            <div class="step-label">Picked Up</div>
+          </div>
+          <div class="track-step" id="stepOnWay">
+            <div class="step-circle">5</div>
+            <div class="step-label">Out for Delivery</div>
+          </div>
+          <div class="track-step" id="stepDelivered">
+            <div class="step-circle">6</div>
+            <div class="step-label">Delivered</div>
+          </div>
+        </div>
+
+        <!-- Interactive Leaflet Map -->
+        <div id="liveTrackingMap" class="map-container"></div>
+
+        <!-- Driver Info Card -->
+        <div class="driver-info-panel">
+          <div class="driver-avatar" id="trackingDriverAvatar">RK</div>
+          <div class="driver-details">
+            <div class="driver-name" id="trackingDriverName">Ravi Kumar</div>
+            <div class="driver-vehicle" id="trackingDriverDesc">Bajaj Chetak Electric &bull; KA-05-EV-4821</div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary btn-sm" id="simulateDriverMovementBtn">Simulate GPS</button>
+          </div>
+        </div>
+
+        <div style="font-size: 0.8rem; color: var(--text-secondary); text-align: center;">
+          GPS Telemetry updates broadcast via Supabase Realtime channel.
+        </div>
       </div>
 
-      <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; background: rgba(255,255,255,0.05); padding: 4px; border-radius: var(--radius-sm);">
-        <button id="tabSignIn" style="flex: 1; padding: 0.5rem; border-radius: var(--radius-sm); font-weight: 600; color: #fff; background: var(--card-hover);">Sign In</button>
-        <button id="tabSignUp" style="flex: 1; padding: 0.5rem; border-radius: var(--radius-sm); font-weight: 600; color: var(--text-muted);">Register</button>
-      </div>
-
-      <form id="authForm">
-        <div class="form-group" id="groupName" style="display: none;">
-          <label class="form-label">Full Name</label>
-          <input type="text" class="form-input" id="authName" placeholder="e.g. Ananya Sharma">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Email Address</label>
-          <input type="email" class="form-input" id="authEmail" placeholder="customer@homevibes.com" required>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Password</label>
-          <input type="password" class="form-input" id="authPassword" placeholder="••••••••" required>
-        </div>
-
-        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem; margin-top: 1rem;" id="authSubmitBtn">
-          Continue
-        </button>
-      </form>
-
-      <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.08); text-align: center;">
-        <span style="font-size: 0.8rem; color: var(--text-dim);">Quick Demo Autofill:</span>
-        <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.5rem;">
-          <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" id="autofillCustomer">Demo Customer</button>
-          <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" id="autofillDriver">Demo Driver</button>
-          <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" id="autofillAdmin">Demo Admin</button>
-        </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="openReviewBtn" style="display: none;">Leave Feedback</button>
+        <button class="btn btn-primary" id="closeTrackingFooterBtn">Dismiss</button>
       </div>
     </div>
   </div>
@@ -341,105 +357,140 @@
   <!-- ============================================================================
        MY ORDERS HISTORY MODAL
        ============================================================================ -->
-  <div class="modal-overlay" id="ordersModal">
-    <div class="modal-box">
+  <div class="modal-backdrop" id="ordersModal">
+    <div class="modal-card">
       <div class="modal-header">
-        <h3 style="font-family: var(--font-display); font-size: 1.4rem;">📦 Order History</h3>
-        <button class="drawer-close-btn" id="closeOrdersBtn">&times;</button>
+        <h3 class="modal-title">My Orders History</h3>
+        <button class="btn-icon-close" id="closeOrdersBtn" aria-label="Close modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
-
-      <div id="ordersHistoryList" style="display: flex; flex-direction: column; gap: 1rem;">
-        <!-- Populated via app.js -->
+      <div class="modal-body" id="ordersHistoryList">
+        <!-- Rendered via JS -->
       </div>
     </div>
   </div>
 
   <!-- ============================================================================
-       CLOUD COMPUTING ARCHITECTURE MODAL (VIVA & ACADEMIC SHOWCASE)
+       AUTHENTICATION MODAL
        ============================================================================ -->
-  <div class="modal-overlay" id="cloudArchitectureModal">
-    <div class="modal-box" style="width: 800px;">
+  <div class="modal-backdrop" id="authModal">
+    <div class="modal-card" style="max-width: 420px;">
       <div class="modal-header">
-        <div>
-          <h3 style="font-family: var(--font-display); font-size: 1.4rem; color: #38bdf8;">☁️ HomeVibes Cloud Architecture</h3>
-          <div style="font-size: 0.85rem; color: var(--text-muted);">Cloud Computing & Applications Technical Mapping</div>
-        </div>
-        <button class="drawer-close-btn" id="closeCloudModalBtn">&times;</button>
+        <h3 class="modal-title" id="authModalTitle">Sign In to HomeVibes</h3>
+        <button class="btn-icon-close" id="closeAuthBtn" aria-label="Close modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
-
-      <div style="display: flex; flex-direction: column; gap: 1.5rem; font-size: 0.9rem;">
-        
-        <!-- Live Connection Status & Config Box -->
-        <div style="background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.25); border-radius: var(--radius-md); padding: 1rem;">
-          <div style="font-weight: 700; color: #38bdf8; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-            <span>⚡ Backend Cloud Connection Status</span>
-            <span id="cloudStatusBadge" style="font-size: 0.75rem; background: var(--success); color: #000; padding: 2px 8px; border-radius: 99px; font-weight: 700;">Live Supabase / Resilient Local</span>
-          </div>
-          <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.75rem;">
-            Configure your Supabase Cloud URL and Anon Key below to link your live project instance. Changes persist in local storage.
-          </p>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
-            <input type="text" id="cfgSupabaseUrl" class="form-input" style="font-size: 0.8rem;" placeholder="https://xyz.supabase.co">
-            <input type="password" id="cfgSupabaseKey" class="form-input" style="font-size: 0.8rem;" placeholder="Supabase Anon Key (JWT)">
-          </div>
-          <button class="btn-primary" style="font-size: 0.8rem; padding: 0.4rem 1rem;" id="saveCloudConfigBtn">Save & Reconnect</button>
+      <div class="modal-body">
+        <div style="display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px;">
+          <button id="tabSignIn" style="flex:1; padding: 10px; font-weight: 700; border-bottom: 2px solid var(--text-primary); color: var(--text-primary);">Sign In</button>
+          <button id="tabSignUp" style="flex:1; padding: 10px; font-weight: 600; color: var(--text-secondary);">Create Account</button>
         </div>
 
-        <!-- Academic Cloud Concepts Table -->
-        <div>
-          <h4 style="color: var(--text-main); margin-bottom: 0.5rem;">Academic Cloud Concepts Demonstrated</h4>
-          <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; color: var(--text-muted);">
-            <thead>
-              <tr style="border-bottom: 1px solid var(--card-border); color: var(--text-main); text-align: left;">
-                <th style="padding: 6px;">Concept</th>
-                <th style="padding: 6px;">Implementation</th>
-                <th style="padding: 6px;">Service Model</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <td style="padding: 6px; font-weight: 600; color: #fff;">Cloud Database</td>
-                <td style="padding: 6px;">Supabase PostgreSQL 15 + RLS</td>
-                <td style="padding: 6px; color: #38bdf8;">PaaS</td>
-              </tr>
-              <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <td style="padding: 6px; font-weight: 600; color: #fff;">Realtime WebSockets</td>
-                <td style="padding: 6px;">Postgres CDC Pub/Sub Channels</td>
-                <td style="padding: 6px; color: #38bdf8;">PaaS</td>
-              </tr>
-              <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <td style="padding: 6px; font-weight: 600; color: #fff;">Serverless Functions</td>
-                <td style="padding: 6px;">Supabase Deno Edge Functions</td>
-                <td style="padding: 6px; color: #38bdf8;">FaaS</td>
-              </tr>
-              <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <td style="padding: 6px; font-weight: 600; color: #fff;">Push Notifications</td>
-                <td style="padding: 6px;">Firebase Cloud Messaging (FCM)</td>
-                <td style="padding: 6px; color: #38bdf8;">SaaS / Cloud API</td>
-              </tr>
-              <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <td style="padding: 6px; font-weight: 600; color: #fff;">Mobile Cloud Computing</td>
-                <td style="padding: 6px;">Flutter Android Driver with GPS Sync</td>
-                <td style="padding: 6px; color: #38bdf8;">Mobile Edge</td>
-              </tr>
-              <tr>
-                <td style="padding: 6px; font-weight: 600; color: #fff;">Application Delivery</td>
-                <td style="padding: 6px;">Three-tier Micro-frontend & Driver Fleet</td>
-                <td style="padding: 6px; color: #38bdf8;">SaaS</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
+        <form id="authForm">
+          <div class="form-group" id="groupName" style="display: none;">
+            <label class="form-label" for="authName">Full Name</label>
+            <input type="text" id="authName" class="form-input" placeholder="e.g. Rahul Sharma">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="authEmail">Email Address</label>
+            <input type="email" id="authEmail" class="form-input" required placeholder="name@example.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="authPassword">Password</label>
+            <input type="password" id="authPassword" class="form-input" required placeholder="Minimum 6 characters">
+          </div>
+          <button type="submit" class="btn btn-primary" id="authSubmitBtn" style="width: 100%; margin-top: 8px;">
+            Sign In
+          </button>
+        </form>
       </div>
     </div>
   </div>
 
-  <!-- Toast Alert Notifications Container -->
+  <!-- ============================================================================
+       CLOUD ARCHITECTURE (Viva & Course Grading Modal)
+       ============================================================================ -->
+  <div class="modal-backdrop" id="cloudArchitectureModal">
+    <div class="modal-card" style="max-width: 640px;">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Cloud Computing Architecture</h3>
+          <div style="font-size: 0.8rem; color: var(--text-secondary);">Course Project Evaluation & Live Cloud Integrations</div>
+        </div>
+        <button class="btn-icon-close" id="closeCloudModalBtn" aria-label="Close modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div style="display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); margin-bottom: 16px;">
+          <button class="btn btn-sm btn-secondary" id="tabArchOverview" style="font-weight: 700;">Overview</button>
+          <button class="btn btn-sm btn-secondary" id="tabArchConfig">Live Supabase Config</button>
+        </div>
+
+        <div id="archOverviewContent">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+            <div style="background: var(--bg-surface-subtle); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 4px;">PostgreSQL & RLS</div>
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">10 Relational tables with strict Row-Level Security isolation across Customer, Kitchen, Driver roles.</div>
+            </div>
+            <div style="background: var(--bg-surface-subtle); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 4px;">Serverless Functions</div>
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">Deno Edge functions (create-order, update-status, assign-driver, send-notifications).</div>
+            </div>
+            <div style="background: var(--bg-surface-subtle); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 4px;">Realtime Telemetry</div>
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">WebSocket channels for driver GPS tracking and live status updates without client polling.</div>
+            </div>
+            <div style="background: var(--bg-surface-subtle); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 4px;">Flutter Driver Client</div>
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">Multi-platform mobile app tracking live delivery GPS and updating dispatch orders.</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="archConfigContent" style="display: none;">
+          <div class="form-group">
+            <label class="form-label" for="cfgSupabaseUrl">Active Supabase URL</label>
+            <input type="text" id="cfgSupabaseUrl" class="form-input" value="https://aymdlyhwqtgmaizwqotw.supabase.co" readonly>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="cfgSupabaseKey">Supabase Anon Key</label>
+            <input type="password" id="cfgSupabaseKey" class="form-input" placeholder="Configure in config.js or override here">
+          </div>
+          <button class="btn btn-secondary btn-sm" id="saveCloudConfigBtn">Save Configuration</button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="closeCloudModalFooterBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- Application Logic Scripts -->
-  <script src="js/env.js" onerror="console.log('No local env.js found, using config fallback.')"></script>
+  <!-- ============================================================================
+       FOOTER
+       ============================================================================ -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div>
+        <div style="font-weight: 800; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 4px;">Home<span>Vibes</span></div>
+        <p>Fresh Indian DIY Meal Kits & Pre-cut Ingredients. Sourced directly from local vendors.</p>
+      </div>
+      <div class="footer-copy">
+        <span>Cloud Computing Project</span> &bull;
+        <span>Supabase PaaS</span> &bull;
+        <span>Flutter Driver Fleet</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
   <script src="js/config.js"></script>
   <script src="js/mockData.js"></script>
   <script src="js/supabaseClient.js"></script>

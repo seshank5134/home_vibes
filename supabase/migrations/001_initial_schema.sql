@@ -2,6 +2,8 @@
 -- HomeVibes — Cloud-Native Food Delivery Platform
 -- Migration 001: Initial Relational Database Schema
 -- Target Engine: PostgreSQL 15+ (Supabase)
+-- Currency: Indian Rupee (INR - ₹)
+-- Model: Fresh Indian Meal Kits & Raw Materials with Step-by-Step Cooking Scripts
 -- ==============================================================================
 
 -- Enable UUID extension
@@ -38,20 +40,24 @@ CREATE TABLE IF NOT EXISTS public.categories (
 );
 
 -- ==============================================================================
--- 3. FOOD ITEMS TABLE
+-- 3. FOOD ITEMS / MEAL KITS TABLE
 -- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.food_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
     name VARCHAR(200) NOT NULL,
     description TEXT,
-    price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
+    price NUMERIC(10, 2) NOT NULL CHECK (price >= 0), -- Amount in INR (₹)
     image_url TEXT,
     is_available BOOLEAN NOT NULL DEFAULT true,
     is_featured BOOLEAN NOT NULL DEFAULT false,
     rating NUMERIC(3, 2) DEFAULT 5.00 CHECK (rating >= 1.00 AND rating <= 5.00),
     rating_count INTEGER NOT NULL DEFAULT 0,
-    prep_time_minutes INTEGER DEFAULT 20,
+    cook_time_minutes INTEGER DEFAULT 15,
+    servings INTEGER DEFAULT 2,
+    spice_level VARCHAR(20) DEFAULT 'Medium',
+    raw_ingredients JSONB DEFAULT '[]'::jsonb, -- Raw material components
+    cooking_script JSONB DEFAULT '[]'::jsonb,   -- Step-by-step DIY recipe script
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
@@ -62,7 +68,7 @@ CREATE TABLE IF NOT EXISTS public.food_items (
 CREATE TABLE IF NOT EXISTS public.addresses (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    label VARCHAR(50) NOT NULL DEFAULT 'Home', -- e.g., 'Home', 'Work', 'Other'
+    label VARCHAR(50) NOT NULL DEFAULT 'Home',
     address TEXT NOT NULL,
     latitude NUMERIC(10, 7) NOT NULL,
     longitude NUMERIC(10, 7) NOT NULL,
@@ -77,7 +83,7 @@ CREATE TABLE IF NOT EXISTS public.addresses (
 CREATE TABLE IF NOT EXISTS public.drivers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL UNIQUE REFERENCES public.profiles(id) ON DELETE CASCADE,
-    vehicle_type VARCHAR(50) DEFAULT 'Motorcycle',
+    vehicle_type VARCHAR(50) DEFAULT 'Two-Wheeler',
     vehicle_number VARCHAR(50),
     is_online BOOLEAN NOT NULL DEFAULT false,
     current_latitude NUMERIC(10, 7),
@@ -111,13 +117,13 @@ CREATE TABLE IF NOT EXISTS public.orders (
         )
     ),
     subtotal NUMERIC(10, 2) NOT NULL CHECK (subtotal >= 0),
-    delivery_fee NUMERIC(10, 2) NOT NULL DEFAULT 0.00 CHECK (delivery_fee >= 0),
+    delivery_fee NUMERIC(10, 2) NOT NULL DEFAULT 40.00 CHECK (delivery_fee >= 0),
     total_amount NUMERIC(10, 2) NOT NULL CHECK (total_amount >= 0),
     delivery_address TEXT NOT NULL,
     delivery_latitude NUMERIC(10, 7) NOT NULL,
     delivery_longitude NUMERIC(10, 7) NOT NULL,
     payment_method VARCHAR(30) NOT NULL DEFAULT 'CASH_ON_DELIVERY' 
-        CHECK (payment_method IN ('CASH_ON_DELIVERY', 'ONLINE_MOCK')),
+        CHECK (payment_method IN ('CASH_ON_DELIVERY', 'ONLINE_MOCK', 'UPI')),
     payment_status VARCHAR(20) NOT NULL DEFAULT 'PENDING' 
         CHECK (payment_status IN ('PENDING', 'PAID', 'FAILED', 'REFUNDED')),
     delivery_notes TEXT,
@@ -133,7 +139,7 @@ CREATE TABLE IF NOT EXISTS public.order_items (
     order_id UUID NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
     food_id UUID NOT NULL REFERENCES public.food_items(id) ON DELETE RESTRICT,
     quantity INTEGER NOT NULL CHECK (quantity > 0),
-    unit_price NUMERIC(10, 2) NOT NULL CHECK (unit_price >= 0), -- Captured at purchase time!
+    unit_price NUMERIC(10, 2) NOT NULL CHECK (unit_price >= 0),
     total_price NUMERIC(10, 2) NOT NULL CHECK (total_price >= 0)
 );
 
@@ -245,11 +251,9 @@ DECLARE
     user_role VARCHAR(20);
     user_name VARCHAR(255);
 BEGIN
-    -- Extract role and name from auth metadata, default to CUSTOMER
     user_role := COALESCE(NEW.raw_user_meta_data->>'role', 'CUSTOMER');
     user_name := COALESCE(NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1));
 
-    -- Insert into public.profiles
     INSERT INTO public.profiles (id, name, email, phone, role)
     VALUES (
         NEW.id,
@@ -262,7 +266,6 @@ BEGIN
     SET name = EXCLUDED.name,
         role = EXCLUDED.role;
 
-    -- If driver, ensure driver record exists
     IF user_role = 'DRIVER' THEN
         INSERT INTO public.drivers (user_id, is_online)
         VALUES (NEW.id, false)
@@ -284,26 +287,22 @@ CREATE TRIGGER on_auth_user_created
 CREATE OR REPLACE FUNCTION public.validate_order_status_transition()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Allow initial insert with status PLACED
     IF TG_OP = 'INSERT' THEN
         RETURN NEW;
     END IF;
 
-    -- Allow keeping the same status
     IF OLD.status = NEW.status THEN
         RETURN NEW;
     END IF;
 
-    -- Cancellation is permitted from PLACED, CONFIRMED, or PREPARING
     IF NEW.status = 'CANCELLED' THEN
         IF OLD.status IN ('PLACED', 'CONFIRMED', 'PREPARING') THEN
             RETURN NEW;
         ELSE
-            RAISE EXCEPTION 'Cannot cancel order once ready or picked up. Current status: %', OLD.status;
+            RAISE EXCEPTION 'Cannot cancel order once packed or dispatched. Current status: %', OLD.status;
         END IF;
     END IF;
 
-    -- Strict forward lifecycle validation
     IF OLD.status = 'PLACED' AND NEW.status = 'CONFIRMED' THEN
         RETURN NEW;
     ELSIF OLD.status = 'CONFIRMED' AND NEW.status = 'PREPARING' THEN
@@ -332,7 +331,7 @@ CREATE TRIGGER check_order_transition
     FOR EACH ROW EXECUTE FUNCTION public.validate_order_status_transition();
 
 -- ==============================================================================
--- AUTOMATIC NOTIFICATION TRIGGER ON ORDER STATUS CHANGE
+-- AUTOMATIC NOTIFICATION TRIGGER (CLEAN, NO EMOJIS)
 -- ==============================================================================
 CREATE OR REPLACE FUNCTION public.notify_on_order_status_change()
 RETURNS TRIGGER AS $$
@@ -343,35 +342,34 @@ BEGIN
     IF OLD.status IS DISTINCT FROM NEW.status THEN
         CASE NEW.status
             WHEN 'CONFIRMED' THEN
-                title_text := 'Order Confirmed! 🎉';
-                body_text := 'Kitchen has accepted your order ' || NEW.order_number || ' and will begin preparing soon.';
+                title_text := 'Order Confirmed';
+                body_text := 'Your meal kit order ' || NEW.order_number || ' has been confirmed by the kitchen hub.';
             WHEN 'PREPARING' THEN
-                title_text := 'Cooking in Progress 🍳';
-                body_text := 'HomeVibes kitchen is now preparing your fresh food!';
+                title_text := 'Packaging Meal Kit';
+                body_text := 'Fresh pre-cut ingredients and spices are being packed for your order.';
             WHEN 'READY_FOR_PICKUP' THEN
-                title_text := 'Order Packed & Ready 📦';
-                body_text := 'Your order is hot and packed, awaiting driver pickup.';
+                title_text := 'Kit Packed and Ready';
+                body_text := 'Your order is sealed with fresh recipe scripts, awaiting driver pickup.';
             WHEN 'DRIVER_ASSIGNED' THEN
-                title_text := 'Driver Assigned 🛵';
-                body_text := 'A delivery partner has been assigned to your order.';
+                title_text := 'Delivery Partner Assigned';
+                body_text := 'A delivery partner has been assigned to collect your meal kit.';
             WHEN 'PICKED_UP' THEN
-                title_text := 'Food Picked Up 🛵';
-                body_text := 'Your driver has picked up your order from the central kitchen.';
+                title_text := 'Order Picked Up';
+                body_text := 'Your delivery partner has collected your package from the central hub.';
             WHEN 'OUT_FOR_DELIVERY' THEN
-                title_text := 'Out for Delivery 🚀';
-                body_text := 'Your driver is heading towards your location. Track live on map!';
+                title_text := 'Out for Delivery';
+                body_text := 'Your delivery partner is on the way with your meal kit. Track live on map.';
             WHEN 'DELIVERED' THEN
-                title_text := 'Order Delivered! 🍽️';
-                body_text := 'Enjoy your meal! Please rate your delivery experience.';
+                title_text := 'Order Delivered';
+                body_text := 'Your meal kit has arrived. Follow your cooking script and enjoy your meal.';
             WHEN 'CANCELLED' THEN
-                title_text := 'Order Cancelled ⚠️';
+                title_text := 'Order Cancelled';
                 body_text := 'Your order ' || NEW.order_number || ' has been cancelled.';
             ELSE
                 title_text := 'Order Update';
-                body_text := 'Order ' || NEW.order_number || ' status is now: ' || NEW.status;
+                body_text := 'Order ' || NEW.order_number || ' status is now ' || NEW.status;
         END CASE;
 
-        -- Insert customer notification
         INSERT INTO public.notifications (user_id, title, body, type, related_order_id)
         VALUES (NEW.customer_id, title_text, body_text, 'ORDER_STATUS', NEW.id);
     END IF;

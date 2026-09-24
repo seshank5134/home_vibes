@@ -159,7 +159,7 @@ class ActiveDeliveryScreen extends StatelessWidget {
                                 style: const TextStyle(fontSize: 13, color: Color(0xFFCBD5E1)),
                               ),
                               Text(
-                                '\$${i.totalPrice.toStringAsFixed(2)}',
+                                '₹${i.totalPrice.toStringAsFixed(0)}',
                                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                               ),
                             ],
@@ -177,7 +177,7 @@ class ActiveDeliveryScreen extends StatelessWidget {
                       ),
                       Text(
                         currentOrder.paymentMethod == 'CASH_ON_DELIVERY'
-                            ? '\$${currentOrder.totalAmount.toStringAsFixed(2)} (Cash)'
+                            ? '₹${currentOrder.totalAmount.toStringAsFixed(0)} (Cash)'
                             : 'PAID (Online)',
                         style: TextStyle(
                           fontSize: 14,
@@ -214,7 +214,7 @@ class ActiveDeliveryScreen extends StatelessWidget {
                           if (success && currentOrder.status == 'DELIVERED' && context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('🎉 Delivery successfully marked as completed!'),
+                                content: Text('Delivery successfully marked as completed!'),
                                 backgroundColor: Color(0xFF10B981),
                               ),
                             );
@@ -342,7 +342,7 @@ class ActiveDeliveryScreen extends StatelessWidget {
           Text(address, style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
           if (phone != null) ...[
             const SizedBox(height: 8),
-            Text('📞 $phone', style: const TextStyle(fontSize: 12, color: Color(0xFF38BDF8))),
+            Text('Phone: $phone', style: const TextStyle(fontSize: 12, color: Color(0xFF38BDF8))),
           ],
         ],
       ),

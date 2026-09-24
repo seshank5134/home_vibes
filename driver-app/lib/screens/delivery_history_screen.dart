@@ -100,7 +100,7 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           const Text(
-                            '+\$3.50',
+                            '+₹50',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
