@@ -948,13 +948,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!AppState.map) {
       AppState.map = L.map('liveTrackingMap', {
         zoomControl: true,
-        attributionControl: false
+        attributionControl: true
       }).setView(driverPos, 13);
 
-      // Clean OpenStreetMap tiles (100% free, zero watermark)
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      // OpenStreetMap tiles — 100% free, no API key required
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors'
+        subdomains: ['a', 'b', 'c'],
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        crossOrigin: true
       }).addTo(AppState.map);
 
       // Markers with SVG
