@@ -5,6 +5,7 @@
 
 const AppConfig = {
   DEFAULT_SUPABASE_URL: "https://aymdlyhwqtgmaizwqotw.supabase.co",
+  DEFAULT_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5bWRseWh3cXRnbWFpendxb3R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyMTk4ODUsImV4cCI6MjEwNTc5NTg4NX0.KlzI1laEI58eQispa8RmfbM5OJQY5bGm3i73K1hoyGs",
   
   DEFAULT_KITCHEN: {
     name: "HomeVibes Central Hub (Bengaluru)",
@@ -24,7 +25,7 @@ const AppConfig = {
     if (window.HOMEVIBES_ENV && window.HOMEVIBES_ENV.SUPABASE_ANON_KEY && !window.HOMEVIBES_ENV.SUPABASE_ANON_KEY.includes("your-supabase-anon-key")) {
       return window.HOMEVIBES_ENV.SUPABASE_ANON_KEY;
     }
-    return localStorage.getItem("HOMEVIBES_SUPABASE_ANON_KEY") || "";
+    return localStorage.getItem("HOMEVIBES_SUPABASE_ANON_KEY") || this.DEFAULT_SUPABASE_ANON_KEY;
   },
 
   getGoogleMapsApiKey() {
