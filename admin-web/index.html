@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeVibes Admin — Kitchen Operations & Cloud Dispatch</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍🍳</text></svg>">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/admin.css">
+
+  <!-- Supabase JS Client CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- ============================================================================
+       SIDEBAR NAVIGATION
+       ============================================================================ -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand">
+      <div style="font-size: 1.5rem;">🔥</div>
+      <div>Home<span>Vibes</span></div>
+      <span class="brand-badge">ADMIN</span>
+    </div>
+
+    <ul class="sidebar-menu">
+      <li class="menu-item active" data-section="secDashboard">
+        <span>📊</span> Dashboard
+      </li>
+      <li class="menu-item" data-section="secOrders">
+        <span>🛎️</span> Live Orders Queue
+      </li>
+      <li class="menu-item" data-section="secDrivers">
+        <span>🛵</span> Driver Fleet
+      </li>
+      <li class="menu-item" data-section="secFood">
+        <span>🍔</span> Food Inventory
+      </li>
+      <li class="menu-item" data-section="secCloud">
+        <span>☁️</span> Cloud Architecture
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem;">
+            CM
+          </div>
+          <div>
+            <div style="font-size: 0.85rem; font-weight: 700;" id="adminName">Chef Marcus</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">Kitchen Admin</div>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="adminLogoutBtn" title="Log Out">⎋</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================================================
+       MAIN CONTENT CONTAINER
+       ============================================================================ -->
+  <main class="admin-main">
+    
+    <!-- Topbar -->
+    <header class="admin-topbar">
+      <div>
+        <h1 class="topbar-title" id="pageTitle">Operations Dashboard</h1>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">Central Kitchen Dispatch & Telemetry Hub</div>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="btn btn-secondary btn-sm" id="btnSimulateOrder">
+          <span>⚡</span> Simulate Incoming Order
+        </button>
+        <button class="btn btn-primary btn-sm" id="btnOpenCloudModal">
+          <span>☁️</span> Cloud Status
+        </button>
+      </div>
+    </header>
+
+    <!-- Body Sections -->
+    <div class="content-body">
+
+      <!-- ========================================================================
+           1. DASHBOARD OVERVIEW SECTION
+           ======================================================================== -->
+      <section id="secDashboard">
+        <!-- KPI Metrics Grid -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-card-header">
+              <span>Total Revenue</span>
+              <div class="metric-card-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">💰</div>
+            </div>
+            <div class="metric-card-val" id="metricRevenue">$342.50</div>
+            <div style="font-size: 0.75rem; color: #10b981; margin-top: 4px;">Completed orders sum</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-card-header">
+              <span>Active Orders</span>
+              <div class="metric-card-icon" style="background: rgba(255, 94, 54, 0.15); color: #ff5e36;">🔥</div>
+            </div>
+            <div class="metric-card-val" id="metricActiveOrders">3</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">In kitchen & in transit</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-card-header">
+              <span>Online Fleet Drivers</span>
+              <div class="metric-card-icon" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">🛵</div>
+            </div>
+            <div class="metric-card-val" id="metricOnlineDrivers">2</div>
+            <div style="font-size: 0.75rem; color: #38bdf8; margin-top: 4px;">Available for dispatch</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-card-header">
+              <span>Total Customers</span>
+              <div class="metric-card-icon" style="background: rgba(168, 85, 247, 0.15); color: #a855f7;">👥</div>
+            </div>
+            <div class="metric-card-val" id="metricCustomers">18</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Registered customer base</div>
+          </div>
+        </div>
+
+        <!-- Recent Orders Preview Table in Dashboard -->
+        <div class="data-table-card">
+          <div class="table-header-box">
+            <h3 style="font-size: 1.1rem; font-weight: 700;">Live Order Dispatches</h3>
+            <button class="btn btn-secondary btn-sm" id="btnViewAllOrders">View All Orders →</button>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Customer</th>
+                <th>Destination</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Assigned Driver</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="dashboardOrdersTbody">
+              <!-- Populated dynamically via admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ========================================================================
+           2. ORDERS MANAGEMENT SECTION
+           ======================================================================== -->
+      <section id="secOrders" style="display: none;">
+        <div class="data-table-card">
+          <div class="table-header-box">
+            <div class="table-filter-tabs">
+              <button class="filter-tab active" data-status="ALL">All</button>
+              <button class="filter-tab" data-status="PLACED">Placed</button>
+              <button class="filter-tab" data-status="PREPARING">Preparing</button>
+              <button class="filter-tab" data-status="READY_FOR_PICKUP">Ready for Pickup</button>
+              <button class="filter-tab" data-status="OUT_FOR_DELIVERY">In Transit</button>
+              <button class="filter-tab" data-status="DELIVERED">Delivered</button>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="text" id="orderSearchInput" placeholder="Search order number or customer..." style="background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); color: #fff; padding: 0.4rem 0.8rem; border-radius: var(--radius-sm); font-size: 0.85rem;">
+              <button class="btn btn-secondary btn-sm" id="btnRefreshOrders">↻ Refresh</button>
+            </div>
+          </div>
+
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Customer / Phone</th>
+                <th>Address</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Driver</th>
+                <th>Manage Dispatch</th>
+              </tr>
+            </thead>
+            <tbody id="ordersFullTbody">
+              <!-- Populated dynamically via admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ========================================================================
+           3. DRIVER FLEET SECTION
+           ======================================================================== -->
+      <section id="secDrivers" style="display: none;">
+        <div class="data-table-card">
+          <div class="table-header-box">
+            <h3 style="font-size: 1.1rem; font-weight: 700;">Registered Fleet Delivery Partners</h3>
+            <span style="font-size: 0.85rem; color: var(--text-muted);" id="fleetSummaryLabel">3 Drivers Total</span>
+          </div>
+
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Driver Partner</th>
+                <th>Vehicle & Plate</th>
+                <th>Status</th>
+                <th>Live Telemetry Coordinates</th>
+                <th>Completed Trips</th>
+                <th>Rating</th>
+              </tr>
+            </thead>
+            <tbody id="driversTbody">
+              <!-- Populated dynamically via admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ========================================================================
+           4. FOOD INVENTORY SECTION
+           ======================================================================== -->
+      <section id="secFood" style="display: none;">
+        <div class="data-table-card">
+          <div class="table-header-box">
+            <h3 style="font-size: 1.1rem; font-weight: 700;">Central Kitchen Delicacies Inventory</h3>
+            <button class="btn btn-primary btn-sm" id="btnOpenAddFoodModal">+ Add New Dish</button>
+          </div>
+
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Dish</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Prep Time</th>
+                <th>Rating</th>
+                <th>In-Stock Switch</th>
+              </tr>
+            </thead>
+            <tbody id="foodInventoryTbody">
+              <!-- Populated dynamically via admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ========================================================================
+           5. CLOUD ARCHITECTURE VIVA SECTION
+           ======================================================================== -->
+      <section id="secCloud" style="display: none;">
+        <div class="data-table-card" style="padding: 2rem;">
+          <h2 style="font-family: var(--font-display); font-size: 1.6rem; color: #38bdf8; margin-bottom: 0.75rem;">
+            ☁️ Cloud Computing & Applications Architecture
+          </h2>
+          <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; max-width: 800px;">
+            HomeVibes demonstrates an enterprise cloud-native food delivery system utilizing managed Platform-as-a-Service (Supabase PaaS) on PostgreSQL 15, Firebase Cloud Messaging (FCM), Google Maps APIs, and mobile cloud clients.
+          </p>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 1.25rem;">
+              <h4 style="color: #fff; margin-bottom: 0.5rem;">1. PostgreSQL & RLS (PaaS)</h4>
+              <p style="font-size: 0.85rem; color: var(--text-muted);">
+                PostgreSQL 15 manages 10 relational tables. Role-Based Access Control is enforced at the database kernel level through Row Level Security (RLS) policies for Customers, Drivers, and Admins.
+              </p>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 1.25rem;">
+              <h4 style="color: #fff; margin-bottom: 0.5rem;">2. Realtime WebSockets</h4>
+              <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Supabase Realtime listens to PostgreSQL Change Data Capture (WAL logs). Status changes and GPS breadcrumbs are broadcast immediately to subscribed web and mobile clients without polling.
+              </p>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 1.25rem;">
+              <h4 style="color: #fff; margin-bottom: 0.5rem;">3. Serverless Edge Functions</h4>
+              <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Deno / TypeScript serverless functions execute trusted operations (price re-verification, order creation, driver dispatch validation) eliminating client privilege escalation vulnerabilities.
+              </p>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 1.25rem;">
+              <h4 style="color: #fff; margin-bottom: 0.5rem;">4. Mobile GPS Streaming</h4>
+              <p style="font-size: 0.85rem; color: var(--text-muted);">
+                The Flutter Android application captures live location fixes and transmits throttled coordinates every 5-10 seconds to the <code>driver_locations</code> table during active transit.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ============================================================================
+       DRIVER ASSIGNMENT MODAL
+       ============================================================================ -->
+  <div class="modal-overlay" id="assignDriverModal">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.2rem; font-weight: 700;">Assign Driver Partner</h3>
+        <button class="btn btn-secondary btn-sm" id="closeAssignModal">&times;</button>
+      </div>
+
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;" id="assignOrderDetails">
+        Order: #HV-847291
+      </p>
+
+      <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Select Available Online Driver</label>
+        <select id="selectDriverDropdown" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); color: #fff; padding: 0.75rem; border-radius: var(--radius-sm); font-family: inherit;">
+          <!-- Populated dynamically via admin.js -->
+        </select>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button class="btn btn-secondary" id="cancelAssignBtn">Cancel</button>
+        <button class="btn btn-primary" id="confirmAssignBtn">Confirm Dispatch</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       ORDER STATUS ADVANCE MODAL
+       ============================================================================ -->
+  <div class="modal-overlay" id="updateStatusModal">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.2rem; font-weight: 700;">Update Kitchen Order Status</h3>
+        <button class="btn btn-secondary btn-sm" id="closeStatusModal">&times;</button>
+      </div>
+
+      <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Advance State Machine</label>
+        <select id="selectNextStatus" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); color: #fff; padding: 0.75rem; border-radius: var(--radius-sm); font-family: inherit;">
+          <option value="CONFIRMED">CONFIRMED (Accept Order)</option>
+          <option value="PREPARING">PREPARING (Start Cooking)</option>
+          <option value="READY_FOR_PICKUP">READY_FOR_PICKUP (Pack Food)</option>
+          <option value="CANCELLED">CANCELLED (Cancel Order)</option>
+        </select>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button class="btn btn-secondary" id="cancelStatusBtn">Cancel</button>
+        <button class="btn btn-primary" id="confirmStatusBtn">Apply State Change</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/env.js" onerror="console.log('No local env.js found, using config fallback.')"></script>
+  <script src="js/config.js"></script>
+  <script src="../customer-web/js/mockData.js"></script>
+  <script src="js/adminClient.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
