@@ -93,25 +93,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // 5. Route Mode Selectors
   if (routeSelectHub) {
-    routeSelectHub.addEventListener("click", () => {
+    routeSelectHub.addEventListener("click", async () => {
       setActiveRouteBtn(routeSelectHub);
-      window.driverRouting.setRouteMode("TO_HUB");
+      await window.driverRouting.setRouteMode("TO_HUB");
       showToast("Route updated: Navigating to Staging Hub", "info");
     });
   }
 
   if (routeSelectCustomer) {
-    routeSelectCustomer.addEventListener("click", () => {
+    routeSelectCustomer.addEventListener("click", async () => {
       setActiveRouteBtn(routeSelectCustomer);
-      window.driverRouting.setRouteMode("TO_CUSTOMER");
+      await window.driverRouting.setRouteMode("TO_CUSTOMER");
       showToast("Route updated: Navigating to Customer", "info");
     });
   }
 
   if (routeSelectFull) {
-    routeSelectFull.addEventListener("click", () => {
+    routeSelectFull.addEventListener("click", async () => {
       setActiveRouteBtn(routeSelectFull);
-      window.driverRouting.setRouteMode("FULL");
+      await window.driverRouting.setRouteMode("FULL");
       showToast("Full itinerary route overview displayed", "info");
     });
   }
@@ -165,8 +165,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const btnRerouteManual = document.getElementById("btnRerouteManual");
   if (btnRerouteManual) {
-    btnRerouteManual.addEventListener("click", () => {
-      window.driverRouting.recalculateDynamicRoute("manual");
+    btnRerouteManual.addEventListener("click", async () => {
+      await window.driverRouting.recalculateDynamicRoute("manual");
       showToast("Route dynamically recalculated based on live road conditions", "success");
     });
   }

@@ -1237,6 +1237,34 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function fetchSnappedRoadPolyline(points) {
+    try {
+      const coordStr = points.map(p => `${Number(p[1]).toFixed(6)},${Number(p[0]).toFixed(6)}`).join(';');
+      const url = `https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`;
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), 3500);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(tid);
+      if (!res.ok) throw new Error("OSRM " + res.status);
+      const d = await res.json();
+      if (d.code === "Ok" && d.routes && d.routes.length) {
+        return d.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  async function updateTrackingMapRouteLine(points) {
+    if (!AppState.routeLine) return;
+    const roadCoords = await fetchSnappedRoadPolyline(points);
+    if (roadCoords && roadCoords.length > 0) {
+      AppState.routeLine.setLatLngs(roadCoords);
+      if (AppState.map) {
+        try { AppState.map.fitBounds(AppState.routeLine.getBounds(), { padding: [35, 35] }); } catch (_) {}
+      }
+    }
+  }
+
   function initTrackingMap(order) {
     const kitchenPos = [12.9352, 77.6245]; // Bengaluru Hub (Koramangala)
     const customerPos = [
@@ -1289,13 +1317,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
       AppState.routeLine = L.polyline([kitchenPos, driverPos, customerPos], {
         color: '#E85D3F',
-        weight: 3,
-        dashArray: '6, 6'
+        weight: 3.5,
+        opacity: 0.85,
+        dashArray: '6, 6',
+        lineJoin: 'round',
+        lineCap: 'round'
       }).addTo(AppState.map);
 
       try {
         AppState.map.fitBounds([kitchenPos, driverPos, customerPos], { padding: [35, 35] });
       } catch (e) {}
+
+      // Snap to road network
+      updateTrackingMapRouteLine([kitchenPos, driverPos, customerPos]);
     } else {
       AppState.map.invalidateSize();
       AppState.markers.customer.setLatLng(customerPos).setPopupContent(`Destination: ${order.delivery_address || 'Delivery Address'}`);
@@ -1304,6 +1338,9 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         AppState.map.fitBounds([kitchenPos, driverPos, customerPos], { padding: [35, 35] });
       } catch (e) {}
+
+      // Snap to road network
+      updateTrackingMapRouteLine([kitchenPos, driverPos, customerPos]);
     }
   }
 
