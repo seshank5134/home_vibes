@@ -40,6 +40,24 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> loginAsDemo() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _driver = _supabaseService.getDemoDriver('driver@homevibes.com');
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     await _supabaseService.signOut();
     _driver = null;

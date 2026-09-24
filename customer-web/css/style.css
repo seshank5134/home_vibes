@@ -1570,3 +1570,172 @@ input:focus, select:focus, textarea:focus {
   background: #FEE2E2;
 }
 
+/* ==============================================================================
+   LIVE ORDER TRACKING TIMELINE & CARDS
+   ============================================================================== */
+.order-history-card {
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.order-history-card:hover {
+  border-color: #C8C5BD;
+  box-shadow: var(--shadow-sm);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-badge.placed {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+}
+
+.status-badge.confirmed,
+.status-badge.preparing {
+  background: #FFFBEB;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
+
+.status-badge.picked_up,
+.status-badge.out_for_delivery {
+  background: #F0FDF4;
+  color: #15803D;
+  border: 1px solid #BBF7D0;
+}
+
+.status-badge.delivered {
+  background: #ECFDF5;
+  color: #047857;
+  border: 1px solid #A7F3D0;
+}
+
+.status-badge.cancelled {
+  background: #FEF2F2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+}
+
+/* Timeline Components */
+.tracking-timeline-item {
+  display: flex;
+  gap: 14px;
+  position: relative;
+  padding-bottom: 20px;
+}
+
+.tracking-timeline-item:last-child {
+  padding-bottom: 4px;
+}
+
+.timeline-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 24px;
+  flex-shrink: 0;
+}
+
+.timeline-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--border-color);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px var(--border-color);
+  z-index: 2;
+  transition: all var(--transition-fast);
+}
+
+.timeline-dot.active {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(232, 93, 63, 0.25);
+  animation: pulse-dot 1.8s infinite;
+}
+
+.timeline-dot.done {
+  background: var(--success);
+  box-shadow: 0 0 0 2px var(--success-border);
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(1); box-shadow: 0 0 0 2px rgba(232, 93, 63, 0.4); }
+  50% { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(232, 93, 63, 0.1); }
+  100% { transform: scale(1); box-shadow: 0 0 0 2px rgba(232, 93, 63, 0.4); }
+}
+
+.timeline-line {
+  position: absolute;
+  top: 14px;
+  left: 11px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border-color);
+  z-index: 1;
+}
+
+.tracking-timeline-item:last-child .timeline-line {
+  display: none;
+}
+
+.timeline-content {
+  flex: 1;
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+}
+
+.timeline-title {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.timeline-desc {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.timeline-time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-family: monospace;
+}
+
+/* Payment Gateway Portal */
+.pay-tab-btn {
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pay-tab-btn:hover {
+  color: var(--text-primary) !important;
+}
+
+.pay-tab-btn.active {
+  border-bottom-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+.bank-radio-card:hover {
+  border-color: var(--text-primary);
+  background: var(--bg-surface-subtle);
+}

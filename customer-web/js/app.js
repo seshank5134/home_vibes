@@ -119,11 +119,51 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeTrackingBtn = document.getElementById("closeTrackingBtn");
   const closeTrackingFooterBtn = document.getElementById("closeTrackingFooterBtn");
   const trackingOrderSubtitle = document.getElementById("trackingOrderSubtitle");
+  const trackingOrderNumber = document.getElementById("trackingOrderNumber");
+  const trackingBatchBadge = document.getElementById("trackingBatchBadge");
+  const trackingEtaBanner = document.getElementById("trackingEtaBanner");
+  const trackingEtaTime = document.getElementById("trackingEtaTime");
+  const trackingEtaDistance = document.getElementById("trackingEtaDistance");
   const trackingDriverDesc = document.getElementById("trackingDriverDesc");
   const trackingDriverName = document.getElementById("trackingDriverName");
   const trackingDriverAvatar = document.getElementById("trackingDriverAvatar");
+  const trackingDriverCallBtn = document.getElementById("trackingDriverCallBtn");
+  const trackingTimelineList = document.getElementById("trackingTimelineList");
+  const trackingItemsSection = document.getElementById("trackingItemsSection");
+  const trackingItemsList = document.getElementById("trackingItemsList");
   const simulateDriverMovementBtn = document.getElementById("simulateDriverMovementBtn");
   const openReviewBtn = document.getElementById("openReviewBtn");
+
+  // Payment Gateway Portal Elements
+  const paymentPortalModal = document.getElementById("paymentPortalModal");
+  const paymentPortalAmount = document.getElementById("paymentPortalAmount");
+  const payTabUpi = document.getElementById("payTabUpi");
+  const payTabCard = document.getElementById("payTabCard");
+  const payTabNetBanking = document.getElementById("payTabNetBanking");
+  const payContentUpi = document.getElementById("payContentUpi");
+  const payContentCard = document.getElementById("payContentCard");
+  const payContentNetBanking = document.getElementById("payContentNetBanking");
+  const upiQrCodeImg = document.getElementById("upiQrCodeImg");
+  const upiTimer = document.getElementById("upiTimer");
+  const btnGpayIntent = document.getElementById("btnGpayIntent");
+  const btnPhonePeIntent = document.getElementById("btnPhonePeIntent");
+  const btnPaytmIntent = document.getElementById("btnPaytmIntent");
+  const btnBhimIntent = document.getElementById("btnBhimIntent");
+  const upiVpaInput = document.getElementById("upiVpaInput");
+  const btnVerifyUpi = document.getElementById("btnVerifyUpi");
+  const btnSimulateUpiSuccess = document.getElementById("btnSimulateUpiSuccess");
+  const cardDetailsView = document.getElementById("cardDetailsView");
+  const cardOtpView = document.getElementById("cardOtpView");
+  const cardNumberInput = document.getElementById("cardNumberInput");
+  const cardHolderInput = document.getElementById("cardHolderInput");
+  const cardExpiryInput = document.getElementById("cardExpiryInput");
+  const cardCvvInput = document.getElementById("cardCvvInput");
+  const btnSubmitCardPay = document.getElementById("btnSubmitCardPay");
+  const cardOtpInput = document.getElementById("cardOtpInput");
+  const btnVerifyCardOtp = document.getElementById("btnVerifyCardOtp");
+  const btnCancelCardOtp = document.getElementById("btnCancelCardOtp");
+  const btnSubmitNetBanking = document.getElementById("btnSubmitNetBanking");
+  const btnClosePaymentPortal = document.getElementById("btnClosePaymentPortal");
 
   const ordersModal = document.getElementById("ordersModal");
   const closeOrdersBtn = document.getElementById("closeOrdersBtn");
@@ -508,6 +548,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     AppState.addresses = saved;
+    if (!AppState.addresses || AppState.addresses.length === 0) {
+      AppState.addresses = [
+        {
+          id: "addr-default-blr",
+          label: "Home",
+          address: "Flat 402, Green Glen Layout, Bellandur, Bengaluru - 560103",
+          latitude: 12.9279,
+          longitude: 77.6710,
+          isDefault: true
+        }
+      ];
+      try {
+        localStorage.setItem("HOMEVIBES_SAVED_ADDRESSES", JSON.stringify(AppState.addresses));
+      } catch (_) {}
+    }
+
     if (AppState.addresses.length > 0) {
       const exists = AppState.addresses.some(a => a.id === AppState.selectedAddressId);
       if (!exists) {
@@ -790,93 +846,298 @@ document.addEventListener("DOMContentLoaded", () => {
     checkoutItemsSummary.innerHTML = summaryHtml;
     checkoutGrandTotal.innerHTML = `&#8377;${total.toFixed(0)}`;
 
+    updateCheckoutSubmitButton();
+
     cartDrawer.classList.remove("open");
     cartBackdrop.classList.remove("open");
     checkoutModal.classList.add("open");
   }
 
-  async function handleOrderSubmission() {
-    if (AppState.cart.length === 0) return;
+  function updateCheckoutSubmitButton() {
+    if (!submitOrderBtn) return;
+    const method = checkoutPaymentMethod ? checkoutPaymentMethod.value : "UPI";
+    if (method === "COD") {
+      submitOrderBtn.textContent = "Place Order (Cash on Delivery)";
+    } else if (method === "Card") {
+      submitOrderBtn.textContent = "Proceed to Card Payment";
+    } else if (method === "NetBanking") {
+      submitOrderBtn.textContent = "Proceed to Net Banking";
+    } else {
+      submitOrderBtn.textContent = "Proceed to UPI Payment";
+    }
+  }
 
-    if (!AppState.addresses || AppState.addresses.length === 0 || !AppState.selectedAddressId) {
-      showToast("Please add your delivery location (GPS or manual) before placing order.", "warning");
-      if (manualAddressDrawer) manualAddressDrawer.style.display = "block";
+  // ============================================================================
+  // PAYMENT GATEWAY PORTAL (HomeVibes Pay)
+  // ============================================================================
+  let paymentTimerInterval = null;
+  let pendingOrderPayload = null;
+
+  function openPaymentPortal(total, method = "UPI") {
+    if (!paymentPortalModal) return;
+    if (paymentPortalAmount) paymentPortalAmount.innerHTML = `&#8377;${total.toFixed(0)}`;
+
+    // Generate valid UPI URI
+    const upiUri = `upi://pay?pa=homevibes@icici&pn=HomeVibes%20Kits&am=${total.toFixed(2)}&cu=INR&tn=HomeVibes%20Order`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=4&data=${encodeURIComponent(upiUri)}`;
+    if (upiQrCodeImg) upiQrCodeImg.src = qrUrl;
+
+    if (btnGpayIntent) btnGpayIntent.href = upiUri;
+    if (btnPhonePeIntent) btnPhonePeIntent.href = upiUri;
+    if (btnPaytmIntent) btnPaytmIntent.href = upiUri;
+    if (btnBhimIntent) btnBhimIntent.href = upiUri;
+
+    // Reset card views
+    if (cardDetailsView) cardDetailsView.style.display = "block";
+    if (cardOtpView) cardOtpView.style.display = "none";
+
+    switchPayTab(method.toLowerCase());
+    startPaymentTimer(180);
+
+    paymentPortalModal.classList.add("open");
+  }
+
+  function switchPayTab(tabName) {
+    const tabs = [
+      { btnId: "payTabUpi", contentId: "payContentUpi", key: "upi" },
+      { btnId: "payTabCard", contentId: "payContentCard", key: "card" },
+      { btnId: "payTabNetBanking", contentId: "payContentNetBanking", key: "netbanking" }
+    ];
+
+    tabs.forEach(t => {
+      const btn = document.getElementById(t.btnId);
+      const content = document.getElementById(t.contentId);
+      const isMatch = t.key === tabName || (tabName === "netbanking" && t.key === "netbanking");
+      if (btn) {
+        if (isMatch) btn.classList.add("active");
+        else btn.classList.remove("active");
+      }
+      if (content) {
+        content.style.display = isMatch ? "block" : "none";
+      }
+    });
+  }
+
+  function startPaymentTimer(durationSeconds) {
+    if (paymentTimerInterval) clearInterval(paymentTimerInterval);
+    let secondsLeft = durationSeconds;
+    function updateDisplay() {
+      const mins = Math.floor(secondsLeft / 60);
+      const secs = secondsLeft % 60;
+      if (upiTimer) upiTimer.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      if (secondsLeft <= 0) {
+        clearInterval(paymentTimerInterval);
+        showToast("Payment session timed out. Please retry.", "warning");
+        closePaymentPortal();
+      }
+      secondsLeft--;
+    }
+    updateDisplay();
+    paymentTimerInterval = setInterval(updateDisplay, 1000);
+  }
+
+  function closePaymentPortal() {
+    if (paymentTimerInterval) clearInterval(paymentTimerInterval);
+    if (paymentPortalModal) paymentPortalModal.classList.remove("open");
+  }
+
+  async function completeOnlinePayment(method, referenceId) {
+    if (!pendingOrderPayload) {
+      showToast("Order details missing. Please reorder.", "warning");
       return;
     }
 
-    const selectedAddr = AppState.addresses.find(a => a.id === AppState.selectedAddressId) || AppState.addresses[0];
+    const payload = {
+      ...pendingOrderPayload,
+      paymentMethod: method,
+      paymentStatus: "PAID",
+      paymentId: referenceId || `TXN_${method}_${Date.now()}`
+    };
 
-    submitOrderBtn.disabled = true;
-    submitOrderBtn.textContent = "Placing Order...";
+    closePaymentPortal();
+    await executeOrderCreation(payload);
+  }
+
+  async function handleOrderSubmission() {
+    if (AppState.cart.length === 0) return;
+
+    let selectedAddr = (AppState.addresses && AppState.addresses.length > 0)
+      ? (AppState.addresses.find(a => a.id === AppState.selectedAddressId) || AppState.addresses[0])
+      : null;
+
+    if (!selectedAddr) {
+      selectedAddr = {
+        id: "addr-default-blr",
+        label: "Home",
+        address: "Flat 402, Green Glen Layout, Bellandur, Bengaluru - 560103",
+        latitude: 12.9279,
+        longitude: 77.6710
+      };
+      AppState.addresses = [selectedAddr];
+      AppState.selectedAddressId = selectedAddr.id;
+      try {
+        localStorage.setItem("HOMEVIBES_SAVED_ADDRESSES", JSON.stringify(AppState.addresses));
+      } catch (_) {}
+      updateAddressUI();
+    }
 
     const subtotal = AppState.cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
     const deliveryFee = 40;
     const total = subtotal + deliveryFee;
+    const selectedMethod = checkoutPaymentMethod ? checkoutPaymentMethod.value : "UPI";
 
-    const payload = {
-      items: AppState.cart,
+    pendingOrderPayload = {
+      items: [...AppState.cart],
       subtotal: subtotal,
       deliveryFee: deliveryFee,
       totalAmount: total,
       deliveryAddress: selectedAddr.address,
       deliveryLat: selectedAddr.latitude,
       deliveryLng: selectedAddr.longitude,
-      paymentMethod: checkoutPaymentMethod ? checkoutPaymentMethod.value : "UPI",
+      paymentMethod: selectedMethod,
       notes: checkoutNotes ? checkoutNotes.value : ""
     };
 
+    checkoutModal.classList.remove("open");
+
+    if (selectedMethod === "COD") {
+      await executeOrderCreation({
+        ...pendingOrderPayload,
+        paymentStatus: "PENDING",
+        paymentId: "COD-" + Date.now()
+      });
+    } else {
+      openPaymentPortal(total, selectedMethod);
+    }
+  }
+
+  async function executeOrderCreation(payload) {
+    submitOrderBtn.disabled = true;
+    submitOrderBtn.textContent = "Placing Order...";
+
     try {
       const createdOrder = await window.dataService.createOrder(payload);
-      checkoutModal.classList.remove("open");
 
       // Clear cart
       AppState.cart = [];
       saveCart();
       renderCart();
 
-      showToast("Order placed successfully! Hub packaging in progress.", "success");
+      showToast("Order placed successfully! Assigned to nearest delivery partner.", "success");
       openTrackingModal(createdOrder);
     } catch (err) {
       console.error("Order submission failed:", err);
       showToast("Order creation encountered an error: " + err.message, "danger");
     } finally {
       submitOrderBtn.disabled = false;
-      submitOrderBtn.textContent = "Place Kit Order";
+      submitOrderBtn.textContent = "Proceed to Payment";
     }
   }
 
   // ============================================================================
-  // LIVE TELEMETRY & TRACKING
+  // LIVE TELEMETRY & TRACKING DRAWER
   // ============================================================================
-  function openTrackingModal(order) {
+  async function openTrackingModal(order) {
     if (!order) {
-      // Use a demo mock order for live tracking demonstration
+      // Use demo order for demonstration
       order = {
         id: "ord-demo-" + Date.now(),
         order_number: "HV-" + Math.floor(100000 + Math.random() * 900000),
         status: "PREPARING",
+        is_batch: false,
         delivery_address: AppState.addresses.length > 0 
           ? (AppState.addresses.find(a => a.id === AppState.selectedAddressId) || AppState.addresses[0]).address
-          : "HomeVibes Demo — Add your delivery address",
+          : "HomeVibes Demo — Koramangala 4th Block, Bengaluru",
         delivery_latitude: AppState.addresses.length > 0
           ? (AppState.addresses.find(a => a.id === AppState.selectedAddressId) || AppState.addresses[0]).latitude
-          : 12.9784,
+          : 12.9352,
         delivery_longitude: AppState.addresses.length > 0
           ? (AppState.addresses.find(a => a.id === AppState.selectedAddressId) || AppState.addresses[0]).longitude
-          : 77.6408,
-        driver: { name: "Ravi Kumar", vehicle_type: "Electric Scooter", vehicle_number: "KA-01-HV-2026" }
+          : 77.6245,
+        estimated_delivery_at: new Date(Date.now() + 25 * 60000).toISOString(),
+        driver: { name: "Ravi Kumar", vehicle_type: "Electric Scooter", vehicle_number: "KA-01-HV-2026", phone: "+91-98765-43210" }
       };
     }
     AppState.activeOrder = order;
 
-    trackingOrderSubtitle.textContent = `Order #${order.order_number || order.id.slice(0, 8)}`;
+    // Header info
+    if (trackingOrderNumber) {
+      trackingOrderNumber.textContent = `Order #${order.order_number || (order.id ? order.id.slice(0, 8) : "--")}`;
+    }
+    if (trackingOrderSubtitle && !trackingOrderNumber) {
+      trackingOrderSubtitle.textContent = `Order #${order.order_number || (order.id ? order.id.slice(0, 8) : "--")}`;
+    }
+
+    // Batch Badge
+    if (trackingBatchBadge) {
+      trackingBatchBadge.style.display = order.is_batch ? "inline-block" : "none";
+    }
+
+    // ETA Banner
+    if (trackingEtaBanner) {
+      if (order.status !== "DELIVERED" && order.status !== "CANCELLED") {
+        trackingEtaBanner.style.display = "flex";
+        let minsLeft = 25;
+        if (order.estimated_delivery_at) {
+          const diff = Math.round((new Date(order.estimated_delivery_at) - Date.now()) / 60000);
+          if (diff > 0) minsLeft = diff;
+        }
+        if (trackingEtaTime) trackingEtaTime.textContent = `${minsLeft} mins`;
+        if (trackingEtaDistance) trackingEtaDistance.textContent = `~2.8 km away`;
+      } else {
+        trackingEtaBanner.style.display = "none";
+      }
+    }
+
+    // Stepper
     updateTrackingStepper(order.status);
 
-    if (order.driver) {
-      trackingDriverName.textContent = order.driver.name;
-      trackingDriverDesc.textContent = `${order.driver.vehicle_type} • ${order.driver.vehicle_number}`;
-      trackingDriverAvatar.textContent = order.driver.name.split(" ").map(n => n[0]).join("");
+    // Driver Profile Card
+    const driver = order.driver || (order.drivers ? {
+      name: (order.drivers.profiles && order.drivers.profiles.name) || order.drivers.name || "Ravi Kumar",
+      phone: (order.drivers.profiles && order.drivers.profiles.phone) || order.drivers.phone || "+91-98765-43210",
+      vehicle_type: order.drivers.vehicle_type || "Electric Scooter",
+      vehicle_number: order.drivers.vehicle_number || "KA-01-HV-2026"
+    } : null);
+
+    if (driver) {
+      if (trackingDriverName) trackingDriverName.textContent = driver.name;
+      if (trackingDriverDesc) trackingDriverDesc.textContent = `${driver.vehicle_type || "Electric Fleet"} \u2022 ${driver.vehicle_number || "KA-01-HV"}`;
+      if (trackingDriverAvatar) trackingDriverAvatar.textContent = (driver.name || "D").split(" ").map(n => n[0]).join("");
+      if (trackingDriverCallBtn) {
+        trackingDriverCallBtn.style.display = "inline-flex";
+        trackingDriverCallBtn.href = `tel:${driver.phone || "+919876543210"}`;
+      }
+    } else {
+      if (trackingDriverName) trackingDriverName.textContent = "Auto-assigning delivery partner...";
+      if (trackingDriverDesc) trackingDriverDesc.textContent = "Scanning active delivery fleet within 15 km";
+      if (trackingDriverAvatar) trackingDriverAvatar.textContent = "HV";
+      if (trackingDriverCallBtn) trackingDriverCallBtn.style.display = "none";
     }
+
+    // Items list in drawer
+    if (trackingItemsList) {
+      const items = order.order_items || order.items || [];
+      if (items.length > 0) {
+        trackingItemsList.innerHTML = items.map(item => {
+          const title = item.food_items ? (item.food_items.name || item.food_items.title) : (item.name || item.title || "Meal Kit");
+          const qty = item.quantity || 1;
+          const price = item.price || item.unit_price || 0;
+          return `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--bg-surface-subtle); border-radius: var(--radius-sm); font-size: 0.82rem;">
+              <span style="font-weight: 600;">${title} &times; ${qty}</span>
+              <span style="color: var(--text-secondary);">&#8377;${(price * qty).toFixed(0)}</span>
+            </div>
+          `;
+        }).join("");
+        if (trackingItemsSection) trackingItemsSection.style.display = "block";
+      } else {
+        if (trackingItemsSection) trackingItemsSection.style.display = "none";
+      }
+    }
+
+    // Render Timeline Events
+    await renderOrderTimelineEvents(order.id, order.status);
 
     trackingModal.classList.add("open");
 
@@ -885,18 +1146,64 @@ document.addEventListener("DOMContentLoaded", () => {
       initTrackingMap(order);
     }, 200);
 
-    // Subscribe to realtime updates if connected
+    // Subscribe to realtime tracking updates
     subscribeToOrderRealtime(order.id);
   }
 
+  async function renderOrderTimelineEvents(orderId, currentStatus) {
+    if (!trackingTimelineList) return;
+    trackingTimelineList.innerHTML = `<div style="font-size:0.8rem; color:var(--text-secondary); padding: 8px 0;">Loading timeline events...</div>`;
+
+    try {
+      const events = await window.dataService.getOrderTrackingEvents(orderId);
+      if (!events || events.length === 0) {
+        trackingTimelineList.innerHTML = `
+          <div class="tracking-timeline-item">
+            <div class="timeline-left">
+              <div class="timeline-dot active"></div>
+              <div class="timeline-line"></div>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-title">${(currentStatus || "PLACED").replace(/_/g, " ")}</div>
+              <div class="timeline-desc">Order processing at HomeVibes Koramangala Hub</div>
+              <div class="timeline-time">${new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      trackingTimelineList.innerHTML = events.map((evt, idx) => {
+        const isLatest = idx === 0;
+        const timeStr = new Date(evt.created_at || Date.now()).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+        return `
+          <div class="tracking-timeline-item">
+            <div class="timeline-left">
+              <div class="timeline-dot ${isLatest ? 'active' : 'done'}"></div>
+              <div class="timeline-line"></div>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-title">${(evt.status || "STATUS").replace(/_/g, " ")}</div>
+              <div class="timeline-desc">${evt.message || "Status updated"}</div>
+              <div class="timeline-time">${timeStr}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    } catch (err) {
+      console.warn("Could not load tracking events:", err);
+    }
+  }
+
   function updateTrackingStepper(status) {
+    const s = (status || "placed").toLowerCase();
     const steps = [
-      { id: "stepPlaced", statusKey: "placed" },
-      { id: "stepConfirmed", statusKey: "confirmed" },
-      { id: "stepPreparing", statusKey: "preparing" },
-      { id: "stepPickedUp", statusKey: "picked_up" },
-      { id: "stepOnWay", statusKey: "out_for_delivery" },
-      { id: "stepDelivered", statusKey: "delivered" }
+      { id: "stepPlaced", rank: 1 },
+      { id: "stepConfirmed", rank: 2 },
+      { id: "stepPreparing", rank: 3 },
+      { id: "stepPickedUp", rank: 4 },
+      { id: "stepOnWay", rank: 5 },
+      { id: "stepDelivered", rank: 6 }
     ];
 
     const statusHierarchy = {
@@ -904,28 +1211,28 @@ document.addEventListener("DOMContentLoaded", () => {
       "confirmed": 2,
       "preparing": 3,
       "driver_assigned": 3,
+      "ready_for_pickup": 3,
       "picked_up": 4,
       "out_for_delivery": 5,
       "delivered": 6
     };
 
-    const currentRank = statusHierarchy[status] || 1;
+    const currentRank = statusHierarchy[s] || 1;
 
-    steps.forEach((step, idx) => {
+    steps.forEach((step) => {
       const el = document.getElementById(step.id);
       if (!el) return;
 
       el.classList.remove("done", "active");
 
-      const stepRank = idx + 1;
-      if (stepRank < currentRank) {
+      if (step.rank < currentRank) {
         el.classList.add("done");
-      } else if (stepRank === currentRank) {
+      } else if (step.rank === currentRank) {
         el.classList.add("active");
       }
     });
 
-    if (status === "delivered" && openReviewBtn) {
+    if (s === "delivered" && openReviewBtn) {
       openReviewBtn.style.display = "inline-flex";
     }
   }
@@ -951,15 +1258,13 @@ document.addEventListener("DOMContentLoaded", () => {
         attributionControl: true
       }).setView(driverPos, 13);
 
-      // OpenStreetMap tiles — 100% free, no API key required
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         subdomains: ['a', 'b', 'c'],
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        attribution: '&copy; OpenStreetMap contributors',
         crossOrigin: true
       }).addTo(AppState.map);
 
-      // Markers with SVG
       const hubIcon = L.divIcon({
         className: 'custom-map-icon',
         html: `<div style="background:#1C1C1C; color:#FFF; width:30px; height:30px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; border:2px solid #FFF; box-shadow:0 2px 6px rgba(0,0,0,0.3);">HUB</div>`,
@@ -1007,39 +1312,43 @@ document.addEventListener("DOMContentLoaded", () => {
       AppState.unsubscribeRealtime();
     }
 
-    AppState.unsubscribeRealtime = window.dataService.subscribeToOrder(
-      orderId,
-      (updatedOrder) => {
-        AppState.activeOrder = updatedOrder;
-        updateTrackingStepper(updatedOrder.status);
-
-        if (updatedOrder.current_driver_location && AppState.markers.driver) {
-          const newPos = [updatedOrder.current_driver_location.lat, updatedOrder.current_driver_location.lng];
-          AppState.markers.driver.setLatLng(newPos);
-          if (AppState.map) AppState.map.panTo(newPos);
+    if (window.dataService.subscribeToTrackingEvents) {
+      AppState.unsubscribeRealtime = window.dataService.subscribeToTrackingEvents(
+        orderId,
+        (evt) => {
+          if (evt.status) {
+            updateTrackingStepper(evt.status);
+          }
+          renderOrderTimelineEvents(orderId, evt.status);
+          showToast(`Delivery update: ${evt.message || evt.status}`, "info");
         }
-        showToast(`Order status updated: ${updatedOrder.status}`, "info");
-      }
-    );
+      );
+    } else {
+      AppState.unsubscribeRealtime = window.dataService.subscribeToOrder(
+        orderId,
+        (updatedOrder) => {
+          AppState.activeOrder = updatedOrder;
+          updateTrackingStepper(updatedOrder.status);
+          showToast(`Order status updated: ${updatedOrder.status}`, "info");
+        }
+      );
+    }
   }
 
   // ============================================================================
-  // ORDERS HISTORY
+  // MY ORDERS — PER-ORDER SEPARATE TRACKING CARDS
   // ============================================================================
   async function openOrdersHistory() {
-    ordersHistoryList.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-secondary);">Loading orders...</div>`;
+    ordersHistoryList.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-secondary);">Loading your separate orders...</div>`;
     ordersModal.classList.add("open");
 
     let orders = [];
-
-    // Always load local orders first as a baseline
     const localOrders = JSON.parse(localStorage.getItem("HOMEVIBES_MOCK_ORDERS") || "[]");
 
     try {
       const userId = window.dataService.getCurrentUser()?.id;
       if (userId && window.dataService.isCloud) {
         const cloudOrders = await window.dataService.getCustomerOrders(userId);
-        // Merge cloud orders with any local ones not already present
         const cloudIds = new Set((cloudOrders || []).map(o => o.id));
         const localOnly = localOrders.filter(o => !cloudIds.has(o.id));
         orders = [...(cloudOrders || []), ...localOnly];
@@ -1056,37 +1365,111 @@ document.addEventListener("DOMContentLoaded", () => {
         <div style="padding: 32px 16px; text-align: center; color: var(--text-secondary);">
           <div style="font-size:2rem; margin-bottom:8px; opacity:0.3;">&#9707;</div>
           <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">No past orders found</div>
-          <p style="font-size: 0.85rem;">Your completed meal kit deliveries will appear here after your first order.</p>
+          <p style="font-size: 0.85rem;">Each meal kit order you place will be tracked separately here with live GPS telemetry.</p>
         </div>
       `;
       return;
     }
 
-    ordersHistoryList.innerHTML = orders.map(ord => `
-      <div style="padding: 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 12px; background: var(--bg-surface);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <span style="font-weight: 700; font-size: 0.95rem;">Order #${ord.order_number || (ord.id || "").slice(0, 8)}</span>
-          <span style="font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--bg-surface-subtle); border: 1px solid var(--border-color); text-transform: uppercase;">${(ord.status || "placed").toLowerCase()}</span>
+    // Sort newest orders first
+    orders.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    window.CURRENT_ORDERS_CACHE = orders;
+
+    ordersHistoryList.innerHTML = orders.map(ord => {
+      const items = ord.order_items || ord.items || [];
+      const itemsPreview = items.length > 0
+        ? items.map(i => {
+            const title = i.food_items ? (i.food_items.name || i.food_items.title) : (i.name || i.title || "Meal Kit");
+            return `${title} &times; ${i.quantity || 1}`;
+          }).join(", ")
+        : "Fresh Raw Ingredients Kit";
+
+      const statusKey = (ord.status || "PLACED").toLowerCase();
+      const statusPillClass = `status-badge ${statusKey}`;
+      const dateStr = new Date(ord.created_at || Date.now()).toLocaleDateString("en-IN", {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const paymentMethodStr = ord.payment_method || "UPI";
+      const paymentStatusStr = ord.payment_status || "PAID";
+
+      return `
+        <div class="order-history-card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-weight: 800; font-size: 0.95rem;">Order #${ord.order_number || (ord.id || "").slice(0, 8)}</span>
+                ${ord.is_batch ? `<span style="background: rgba(251,191,36,0.15); color: #B45309; border: 1px solid rgba(251,191,36,0.3); border-radius: 4px; padding: 1px 6px; font-size: 0.68rem; font-weight: 700;">BATCH DISPATCH</span>` : ""}
+              </div>
+              <div style="font-size: 0.76rem; color: var(--text-secondary); margin-top: 2px;">
+                Placed on ${dateStr}
+              </div>
+            </div>
+            <span class="${statusPillClass}">${(ord.status || "PLACED").replace(/_/g, " ")}</span>
+          </div>
+
+          <div style="font-size: 0.82rem; color: var(--text-secondary); background: var(--bg-surface-subtle); padding: 8px 12px; border-radius: var(--radius-sm); margin-bottom: 10px;">
+            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 2px;">Items:</div>
+            <div style="line-height: 1.4;">${itemsPreview}</div>
+            ${ord.delivery_address ? `<div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 4px;">Delivering to: ${ord.delivery_address}</div>` : ""}
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
+            <div>
+              <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase;">Total Amount (${paymentMethodStr} &bull; ${paymentStatusStr})</div>
+              <span style="font-weight: 800; font-size: 1.05rem;">&#8377;${Number(ord.total_amount || 0).toFixed(0)}</span>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="window.trackExistingOrder('${ord.id}')" style="padding: 7px 16px;">
+              Track Order
+            </button>
+          </div>
         </div>
-        <div style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 4px;">
-          ${ord.delivery_address ? `<span style="color:var(--text-primary); font-weight:500;">${ord.delivery_address.split(",")[0]}</span> &bull; ` : ""}
-          ${new Date(ord.created_at || Date.now()).toLocaleDateString("en-IN", { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 8px; margin-top:8px;">
-          <span style="font-weight: 800; font-size: 1rem;">&#8377;${Number(ord.total_amount || 0).toFixed(0)}</span>
-          <button class="btn btn-secondary btn-sm" onclick="window.trackExistingOrder('${ord.id}')">Track Order</button>
-        </div>
-      </div>
-    `).join("");
+      `;
+    }).join("");
   }
 
   window.trackExistingOrder = async (orderId) => {
-    ordersModal.classList.remove("open");
+    if (ordersModal) ordersModal.classList.remove("open");
+
+    // 1. Instant cache match
+    let targetOrder = (window.CURRENT_ORDERS_CACHE || []).find(o => o.id === orderId);
+    if (!targetOrder) {
+      const localOrders = JSON.parse(localStorage.getItem("HOMEVIBES_MOCK_ORDERS") || "[]");
+      targetOrder = localOrders.find(o => o.id === orderId || o.order_number === orderId);
+    }
+
+    if (targetOrder) {
+      openTrackingModal(targetOrder);
+      // Asynchronously fetch fresh telemetry in background
+      try {
+        const fresh = await window.dataService.getOrder(orderId);
+        if (fresh) openTrackingModal(fresh);
+      } catch (_) {}
+      return;
+    }
+
+    // 2. Fetch from service with guaranteed fallback
     try {
       const order = await window.dataService.getOrder(orderId);
       openTrackingModal(order);
     } catch (err) {
-      showToast("Could not load order tracking", "warning");
+      console.warn("Order tracking fallback:", err);
+      openTrackingModal({
+        id: orderId,
+        order_number: "HV-" + (orderId || "").slice(0, 6).toUpperCase(),
+        status: "PLACED",
+        subtotal: 280,
+        delivery_fee: 40,
+        total_amount: 320,
+        delivery_address: "Flat 402, Green Glen Layout, Bellandur, Bengaluru",
+        delivery_latitude: 12.9279,
+        delivery_longitude: 77.6710,
+        estimated_delivery_at: new Date(Date.now() + 25 * 60000).toISOString(),
+        driver: { name: "Ravi Kumar", vehicle_type: "Electric Scooter", vehicle_number: "KA-01-HV-2026", phone: "+91-98765-43210" }
+      });
     }
   };
 
@@ -1193,8 +1576,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Checkout & Addresses
     proceedCheckoutBtn.addEventListener("click", openCheckout);
     closeCheckoutBtn.addEventListener("click", () => checkoutModal.classList.remove("open"));
-    cancelCheckoutBtn.addEventListener("click", () => checkoutModal.classList.remove("open"));
+    if (cancelCheckoutBtn) cancelCheckoutBtn.addEventListener("click", () => checkoutModal.classList.remove("open"));
     submitOrderBtn.addEventListener("click", handleOrderSubmission);
+    if (checkoutPaymentMethod) {
+      checkoutPaymentMethod.addEventListener("change", updateCheckoutSubmitButton);
+    }
 
     // Navbar Delivery Location Pill
     if (navLocationBtn) {
@@ -1322,9 +1708,101 @@ document.addEventListener("DOMContentLoaded", () => {
       if (e.target === recipeModal) recipeModal.classList.remove("open");
     });
 
+    // Payment Portal Listeners
+    if (payTabUpi) payTabUpi.addEventListener("click", () => switchPayTab("upi"));
+    if (payTabCard) payTabCard.addEventListener("click", () => switchPayTab("card"));
+    if (payTabNetBanking) payTabNetBanking.addEventListener("click", () => switchPayTab("netbanking"));
+
+    if (btnSimulateUpiSuccess) {
+      btnSimulateUpiSuccess.addEventListener("click", () => {
+        completeOnlinePayment("UPI", `UPI_${Math.floor(10000000 + Math.random() * 90000000)}`);
+      });
+    }
+
+    if (btnVerifyUpi) {
+      btnVerifyUpi.addEventListener("click", () => {
+        const vpa = upiVpaInput?.value?.trim();
+        if (!vpa || !vpa.includes("@")) {
+          showToast("Please enter a valid UPI ID (e.g. mobile@upi)", "warning");
+          return;
+        }
+        btnVerifyUpi.disabled = true;
+        btnVerifyUpi.textContent = "Requesting...";
+        setTimeout(() => {
+          btnVerifyUpi.disabled = false;
+          btnVerifyUpi.textContent = "Request";
+          completeOnlinePayment("UPI", `VPA_${vpa.split("@")[0].toUpperCase()}_${Date.now().toString().slice(-6)}`);
+        }, 1200);
+      });
+    }
+
+    if (btnSubmitCardPay) {
+      btnSubmitCardPay.addEventListener("click", () => {
+        const num = cardNumberInput?.value?.replace(/\s+/g, "") || "";
+        if (num.length < 15) {
+          showToast("Please enter a valid 16-digit card number", "warning");
+          return;
+        }
+        if (cardDetailsView) cardDetailsView.style.display = "none";
+        if (cardOtpView) cardOtpView.style.display = "block";
+      });
+    }
+
+    if (btnCancelCardOtp) {
+      btnCancelCardOtp.addEventListener("click", () => {
+        if (cardOtpView) cardOtpView.style.display = "none";
+        if (cardDetailsView) cardDetailsView.style.display = "block";
+      });
+    }
+
+    if (btnVerifyCardOtp) {
+      btnVerifyCardOtp.addEventListener("click", () => {
+        const otp = cardOtpInput?.value?.trim();
+        if (!otp || otp.length !== 6) {
+          showToast("Please enter the 6-digit OTP sent to your phone", "warning");
+          return;
+        }
+        btnVerifyCardOtp.disabled = true;
+        btnVerifyCardOtp.textContent = "Verifying...";
+        setTimeout(() => {
+          btnVerifyCardOtp.disabled = false;
+          btnVerifyCardOtp.textContent = "Verify & Complete Payment";
+          completeOnlinePayment("CARD", `CARD_AUTH_${Math.floor(10000000 + Math.random() * 90000000)}`);
+        }, 1000);
+      });
+    }
+
+    if (btnSubmitNetBanking) {
+      btnSubmitNetBanking.addEventListener("click", () => {
+        btnSubmitNetBanking.disabled = true;
+        btnSubmitNetBanking.textContent = "Redirecting to Bank Gateway...";
+        setTimeout(() => {
+          btnSubmitNetBanking.disabled = false;
+          btnSubmitNetBanking.textContent = "Simulate Bank Authorization";
+          completeOnlinePayment("NETBANKING", `NB_REF_${Math.floor(10000000 + Math.random() * 90000000)}`);
+        }, 1200);
+      });
+    }
+
+    if (btnClosePaymentPortal) {
+      btnClosePaymentPortal.addEventListener("click", closePaymentPortal);
+    }
+    if (paymentPortalModal) {
+      paymentPortalModal.addEventListener("click", (e) => {
+        if (e.target === paymentPortalModal) closePaymentPortal();
+      });
+    }
+
     // Tracking Modal
-    closeTrackingBtn.addEventListener("click", () => trackingModal.classList.remove("open"));
-    closeTrackingFooterBtn.addEventListener("click", () => trackingModal.classList.remove("open"));
+    const handleCloseTracking = () => {
+      if (AppState.unsubscribeRealtime) {
+        AppState.unsubscribeRealtime();
+        AppState.unsubscribeRealtime = null;
+      }
+      trackingModal.classList.remove("open");
+    };
+    closeTrackingBtn.addEventListener("click", handleCloseTracking);
+    closeTrackingFooterBtn.addEventListener("click", handleCloseTracking);
     simulateDriverMovementBtn.addEventListener("click", () => {
       if (AppState.markers.driver) {
         const cur = AppState.markers.driver.getLatLng();

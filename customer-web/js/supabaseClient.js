@@ -1,6 +1,6 @@
 /**
  * HomeVibes Customer Web - Supabase Client & Data Access Layer
- * Handles authentication, queries, orders, and real-time WebSocket subscriptions.
+ * Handles authentication, queries, orders, real-time tracking, and auto-assignment.
  * Features an integrated Mock Fallback Adapter for zero-friction local testing.
  */
 
@@ -110,7 +110,6 @@ class HomeVibesDataService {
 
         if (error) {
           console.warn("[Auth] Cloud signUp warning:", error.message);
-          // If error occurs (e.g. rate limit, signup disabled), fallback gracefully
         }
 
         const userId = data?.user?.id || ("cust-" + Date.now());
@@ -152,7 +151,6 @@ class HomeVibesDataService {
         });
 
         if (!error && data?.user) {
-          // Fetch user profile from public.profiles
           const { data: profile } = await this.client
             .from("profiles")
             .select("*")
@@ -327,13 +325,12 @@ class HomeVibesDataService {
       total_amount: Number(totalAmount.toFixed(2)),
       delivery_address: deliveryAddress,
       delivery_latitude: deliveryLat,
-      delivery_longitude: deliveryLng,
-      payment_method: paymentMethod,
-      payment_status: paymentMethod === "ONLINE_MOCK" ? "PAID" : "PENDING",
+      payment_method: paymentMethod || "UPI",
+      payment_status: orderData.paymentStatus || (["COD", "CASH_ON_DELIVERY"].includes(paymentMethod) ? "PENDING" : "PAID"),
       delivery_notes: notes || ""
     };
 
-    // Always try Supabase first (works for auth users and guest UUID)
+    // Always try Supabase first
     if (this.isCloud && this.client) {
       try {
         let { data: order, error: orderErr } = await this.client
@@ -371,6 +368,9 @@ class HomeVibesDataService {
             console.warn("[Orders] Order items note:", itemsErr.message);
           }
 
+          // Trigger auto-assign (fire and forget)
+          this._triggerAutoAssign(order.id);
+
           // Mirror to localStorage so My Orders works offline
           const cached = JSON.parse(localStorage.getItem("HOMEVIBES_MOCK_ORDERS") || "[]");
           cached.unshift({ ...order, items: items.map(i => ({ ...i, total_price: i.price * i.quantity })) });
@@ -397,32 +397,53 @@ class HomeVibesDataService {
     return mockOrder;
   }
 
+  /** Fire and forget: call auto_assign_driver via Supabase RPC */
+  async _triggerAutoAssign(orderId) {
+    if (!this.isCloud || !this.client) return;
+    try {
+      const { data, error } = await this.client.rpc("auto_assign_driver", { p_order_id: orderId });
+      if (error) {
+        console.warn("[AutoAssign] RPC error:", error.message);
+      } else {
+        console.log("[AutoAssign] Result:", data);
+      }
+    } catch (e) {
+      console.warn("[AutoAssign] Exception:", e.message);
+    }
+  }
+
   async getOrder(orderId) {
     if (this.isCloud && this.client) {
-      const { data: order, error } = await this.client
-        .from("orders")
-        .select(`
-          *,
-          drivers (
-            id,
-            vehicle_type,
-            vehicle_number,
-            current_latitude,
-            current_longitude,
-            profiles (name, phone)
-          ),
-          order_items (
-            id,
-            quantity,
-            unit_price,
-            total_price,
-            food_items (name, image_url)
-          )
-        `)
-        .eq("id", orderId)
-        .single();
-      if (error) throw error;
-      return order;
+      try {
+        const { data: order, error } = await this.client
+          .from("orders")
+          .select(`
+            *,
+            drivers (
+              id,
+              vehicle_type,
+              vehicle_number,
+              current_latitude,
+              current_longitude,
+              profiles (name, phone)
+            ),
+            order_items (
+              id,
+              quantity,
+              unit_price,
+              total_price,
+              food_items (name, image_url)
+            )
+          `)
+          .eq("id", orderId)
+          .maybeSingle();
+
+        if (order && !error) {
+          return order;
+        }
+      } catch (err) {
+        console.warn("[Orders] Cloud getOrder notice, trying local fallback:", err.message);
+      }
     }
 
     // Local Mock Order Retrieval
@@ -450,7 +471,7 @@ class HomeVibesDataService {
         vehicle_number: "KA-01-HV-2026",
         current_latitude: 12.9745,
         current_longitude: 77.6180,
-        profiles: { name: "Ravi Kumar (Speedy Driver)", phone: "+919876543211" }
+        profiles: { name: "Ravi Kumar", phone: "+919876543211" }
       },
       order_items: [
         { id: "oi-1", quantity: 1, unit_price: 12.99, total_price: 12.99, food_items: { name: "Truffle Double Smash Burger" } },
@@ -459,6 +480,10 @@ class HomeVibesDataService {
     };
   }
 
+  /**
+   * Get all orders for a customer — each checkout creates a separate order entry.
+   * Returns orders sorted newest first.
+   */
   async getCustomerOrders(customerId) {
     const targetId = customerId || this.currentUser?.id || "c3333333-cccc-3333-cccc-333333333333";
     if (this.isCloud && this.client) {
@@ -468,8 +493,12 @@ class HomeVibesDataService {
           .select(`
             *,
             order_items (
-              id, quantity, unit_price,
-              food_items (name)
+              id, quantity, unit_price, total_price,
+              food_items (name, image_url)
+            ),
+            drivers (
+              id, vehicle_type, vehicle_number,
+              profiles (name, phone)
             )
           `)
           .or(`customer_id.eq.${targetId},customer_id.is.null`)
@@ -505,36 +534,148 @@ class HomeVibesDataService {
   }
 
   // ============================================================================
-  // SUPABASE REALTIME SUBSCRIPTIONS
+  // ORDER TRACKING — Per-order timeline events
+  // ============================================================================
+
+  /**
+   * Fetch full tracking timeline for a specific order.
+   * Returns array of events sorted oldest to newest.
+   */
+  async getOrderTrackingEvents(orderId) {
+    if (this.isCloud && this.client) {
+      try {
+        const { data, error } = await this.client
+          .from("order_tracking_events")
+          .select("*")
+          .eq("order_id", orderId)
+          .order("created_at", { ascending: true });
+        if (!error && data && data.length > 0) return data;
+      } catch (e) {
+        console.warn("[Tracking] Cloud fetch error:", e.message);
+      }
+    }
+
+    // Mock tracking events for local/demo mode
+    return this._mockTrackingEvents(orderId);
+  }
+
+  /**
+   * Real-time subscription to new tracking events for a specific order.
+   * Fires onNewEvent({status, message, created_at}) for each update.
+   * Returns an unsubscribe function.
+   */
+  subscribeToTrackingEvents(orderId, onNewEvent) {
+    if (!this.isCloud || !this.client) {
+      return this.simulateLocalTransitions(orderId, (update) => {
+        onNewEvent({
+          order_id: orderId,
+          status: update.status,
+          message: this._statusMessage(update.status),
+          created_at: new Date().toISOString()
+        });
+      });
+    }
+
+    const channel = this.client
+      .channel(`tracking_${orderId}`)
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "order_tracking_events",
+        filter: `order_id=eq.${orderId}`
+      }, payload => {
+        console.log("[Realtime] New tracking event:", payload.new);
+        if (onNewEvent) onNewEvent(payload.new);
+      })
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "orders",
+        filter: `id=eq.${orderId}`
+      }, payload => {
+        console.log("[Realtime] Order status updated:", payload.new.status);
+        if (onNewEvent) onNewEvent({
+          order_id: orderId,
+          status: payload.new.status,
+          message: this._statusMessage(payload.new.status),
+          created_at: new Date().toISOString(),
+          _order_update: true,
+          order: payload.new
+        });
+      })
+      .subscribe(status => {
+        console.log(`[Realtime] Tracking channel ${orderId}:`, status);
+      });
+
+    return () => this.client.removeChannel(channel);
+  }
+
+  /**
+   * Subscribe to driver live location — fires whenever driver GPS updates.
+   */
+  subscribeToDriverLiveLocation(driverId, onLocationUpdate) {
+    if (!this.isCloud || !this.client) {
+      return this.simulateLocalDriverGPS(null, onLocationUpdate);
+    }
+
+    const channel = this.client
+      .channel(`driver_live_${driverId}`)
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "driver_live_locations",
+        filter: `driver_id=eq.${driverId}`
+      }, payload => {
+        if (onLocationUpdate) onLocationUpdate({
+          latitude: payload.new.latitude,
+          longitude: payload.new.longitude,
+          heading: payload.new.heading || 0,
+          timestamp: payload.new.updated_at
+        });
+      })
+      .subscribe();
+
+    return () => this.client.removeChannel(channel);
+  }
+
+  /**
+   * Fetch driver info by driver_id.
+   */
+  async getDriverInfo(driverId) {
+    if (!this.isCloud || !this.client || !driverId) return null;
+    try {
+      const { data } = await this.client
+        .from("drivers")
+        .select("*, profiles(name, phone)")
+        .eq("id", driverId)
+        .single();
+      return data;
+    } catch (e) { return null; }
+  }
+
+  // ============================================================================
+  // LEGACY REALTIME (kept for backward compatibility)
   // ============================================================================
   subscribeToOrder(orderId, onStatusChange) {
     if (!this.isCloud || !this.client) {
-      console.log("â„¹ï¸ Realtime: Simulating local state transitions for demo.");
+      console.log("[Realtime] Simulating local state transitions for demo.");
       return this.simulateLocalTransitions(orderId, onStatusChange);
     }
 
     const channel = this.client
-      .channel(`order_tracking_${orderId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "orders",
-          filter: `id=eq.${orderId}`
-        },
-        payload => {
-          console.log("âš¡ Realtime Order Update Received:", payload.new);
-          if (onStatusChange) onStatusChange(payload.new);
-        }
-      )
-      .subscribe(status => {
-        console.log(`ðŸ“¡ Realtime Channel for order ${orderId}:`, status);
-      });
+      .channel(`order_status_${orderId}`)
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "orders",
+        filter: `id=eq.${orderId}`
+      }, payload => {
+        console.log("[Realtime] Order Update:", payload.new);
+        if (onStatusChange) onStatusChange(payload.new);
+      })
+      .subscribe();
 
-    return () => {
-      this.client.removeChannel(channel);
-    };
+    return () => this.client.removeChannel(channel);
   }
 
   subscribeToDriverLocation(orderId, onLocationUpdate) {
@@ -544,55 +685,47 @@ class HomeVibesDataService {
 
     const channel = this.client
       .channel(`driver_loc_${orderId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "driver_locations",
-          filter: `order_id=eq.${orderId}`
-        },
-        payload => {
-          console.log("ðŸ“ Realtime GPS Coordinate Received:", payload.new);
-          if (onLocationUpdate) onLocationUpdate(payload.new);
-        }
-      )
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "driver_locations",
+        filter: `order_id=eq.${orderId}`
+      }, payload => {
+        if (onLocationUpdate) onLocationUpdate(payload.new);
+      })
       .subscribe();
 
-    return () => {
-      this.client.removeChannel(channel);
-    };
+    return () => this.client.removeChannel(channel);
   }
 
-  // Local Demo Simulators for seamless offline demonstration
+  // ============================================================================
+  // DEMO SIMULATORS
+  // ============================================================================
   simulateLocalTransitions(orderId, callback) {
     const statuses = [
-      { status: "CONFIRMED", delay: 5000 },
-      { status: "PREPARING", delay: 10000 },
+      { status: "CONFIRMED",        delay: 5000 },
+      { status: "PREPARING",        delay: 10000 },
       { status: "READY_FOR_PICKUP", delay: 16000 },
-      { status: "DRIVER_ASSIGNED", delay: 22000 },
-      { status: "PICKED_UP", delay: 28000 },
+      { status: "DRIVER_ASSIGNED",  delay: 22000 },
+      { status: "PICKED_UP",        delay: 28000 },
       { status: "OUT_FOR_DELIVERY", delay: 34000 },
-      { status: "DELIVERED", delay: 45000 }
+      { status: "DELIVERED",        delay: 45000 }
     ];
 
     const timers = [];
     statuses.forEach(({ status, delay }) => {
       const t = setTimeout(() => {
-        console.log(`[Demo Simulation] Order status transitioned to: ${status}`);
+        console.log(`[Demo Simulation] Order status -> ${status}`);
         callback({ status });
       }, delay);
       timers.push(t);
     });
 
-    return () => {
-      timers.forEach(t => clearTimeout(t));
-    };
+    return () => timers.forEach(t => clearTimeout(t));
   }
 
   simulateLocalDriverGPS(orderId, callback) {
     let step = 0;
-    // Route from Central Kitchen (12.9716, 77.5946) to Indiranagar (12.9784, 77.6408)
     const points = [
       { lat: 12.9716, lng: 77.5946 },
       { lat: 12.9725, lng: 77.6020 },
@@ -604,11 +737,7 @@ class HomeVibesDataService {
 
     const interval = setInterval(() => {
       if (step < points.length) {
-        callback({
-          latitude: points[step].lat,
-          longitude: points[step].lng,
-          timestamp: new Date().toISOString()
-        });
+        callback({ latitude: points[step].lat, longitude: points[step].lng, timestamp: new Date().toISOString() });
         step++;
       } else {
         clearInterval(interval);
@@ -616,6 +745,37 @@ class HomeVibesDataService {
     }, 4000);
 
     return () => clearInterval(interval);
+  }
+
+  // ============================================================================
+  // HELPERS
+  // ============================================================================
+  _statusMessage(status) {
+    const msgs = {
+      PLACED:           "Your order has been placed successfully!",
+      CONFIRMED:        "HomeVibes kitchen confirmed your order",
+      PREPARING:        "Our chefs are preparing your fresh meal",
+      READY_FOR_PICKUP: "Your order is packed and ready for pickup",
+      DRIVER_ASSIGNED:  "A delivery partner has been assigned to you",
+      PICKED_UP:        "Your order has been picked up by the driver",
+      OUT_FOR_DELIVERY: "Your order is on its way to you!",
+      DELIVERED:        "Order delivered! Enjoy your meal.",
+      CANCELLED:        "Your order has been cancelled"
+    };
+    return msgs[status] || `Status updated: ${status}`;
+  }
+
+  _mockTrackingEvents(orderId) {
+    const base = Date.now() - 45 * 60000;
+    return [
+      { id: "te-1", order_id: orderId, status: "PLACED",           message: "Your order has been placed successfully!",    created_at: new Date(base).toISOString() },
+      { id: "te-2", order_id: orderId, status: "CONFIRMED",        message: "HomeVibes kitchen confirmed your order",       created_at: new Date(base + 3*60000).toISOString() },
+      { id: "te-3", order_id: orderId, status: "PREPARING",        message: "Our chefs are preparing your fresh meal",      created_at: new Date(base + 10*60000).toISOString() },
+      { id: "te-4", order_id: orderId, status: "READY_FOR_PICKUP", message: "Order is packed and ready for pickup",          created_at: new Date(base + 25*60000).toISOString() },
+      { id: "te-5", order_id: orderId, status: "DRIVER_ASSIGNED",  message: "Ravi Kumar is assigned to your delivery",     created_at: new Date(base + 27*60000).toISOString() },
+      { id: "te-6", order_id: orderId, status: "PICKED_UP",        message: "Your order has been picked up by the driver",  created_at: new Date(base + 30*60000).toISOString() },
+      { id: "te-7", order_id: orderId, status: "OUT_FOR_DELIVERY", message: "Your order is on its way to you!",              created_at: new Date(base + 35*60000).toISOString() }
+    ];
   }
 }
 
@@ -625,4 +785,3 @@ function split_email(e) {
 
 window.dataService = new HomeVibesDataService();
 window.authService = window.dataService;
-

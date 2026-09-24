@@ -56,9 +56,11 @@ function createStaticServer(rootFolder, port, name) {
 
 const customerRoot = path.join(__dirname, 'customer-web');
 const adminRoot = path.join(__dirname, 'admin-web');
+const driverRoot = path.join(__dirname, 'driver-app', 'build', 'web');
 const portalRoot = __dirname;
 
 createStaticServer(customerRoot, 3000, 'Customer Web App');
 createStaticServer(adminRoot, 3001, 'Admin Operations Console');
+createStaticServer(driverRoot, 3002, 'Driver Companion Web App');
 createStaticServer(portalRoot, 8080, 'Unified Platform Portal');
 

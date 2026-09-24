@@ -52,6 +52,25 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _handleDemoLogin() async {
+    final auth = context.read<AuthProvider>();
+    final success = await auth.loginAsDemo();
+
+    if (success && mounted) {
+      final driver = auth.driver!;
+      final delivery = context.read<DeliveryProvider>();
+      await delivery.checkActiveDelivery(driver.id);
+      if (driver.isOnline) {
+        await delivery.loadAvailableDeliveries();
+      }
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
@@ -177,22 +196,32 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Demo Autofill Box
+              // Quick Demo Driver Access Box
               Center(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    _emailController.text = 'driver@homevibes.com';
-                    _passwordController.text = 'HomeVibes@2026';
-                  },
-                  icon: const Icon(Icons.auto_fix_high, size: 16, color: Color(0xFF38BDF8)),
-                  label: const Text(
-                    'Autofill Demo Driver Credentials',
-                    style: TextStyle(color: Color(0xFF38BDF8), fontSize: 13),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0x4D38BDF8)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  ),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: auth.isLoading ? null : _handleDemoLogin,
+                        icon: const Icon(Icons.flash_on, size: 18, color: Color(0xFF10B981)),
+                        label: const Text(
+                          'Instant Demo Driver Access (1-Tap)',
+                          style: TextStyle(color: Color(0xFF10B981), fontSize: 13, fontWeight: FontWeight.bold),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFF10B981), width: 1.2),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Pre-configured fleet driver: Ravi Kumar (Speedy Driver)',
+                      style: TextStyle(color: Color(0xFF64748B), fontSize: 11),
+                    ),
+                  ],
                 ),
               ),
             ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/delivery_provider.dart';
+import '../widgets/nearby_order_alert.dart';
 import 'active_delivery_screen.dart';
 import 'delivery_history_screen.dart';
 import 'profile_screen.dart';
@@ -15,6 +16,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _currentIndex = 0;
+  bool _alertOpen = false;
 
   @override
   void initState() {
@@ -28,7 +30,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
           delivery.loadAvailableDeliveries();
         }
       }
+      // Listen for incoming assignments and pop the alert sheet.
+      context.read<DeliveryProvider>().addListener(_onDeliveryProviderChange);
     });
+  }
+
+  @override
+  void dispose() {
+    context.read<DeliveryProvider>().removeListener(_onDeliveryProviderChange);
+    super.dispose();
+  }
+
+  void _onDeliveryProviderChange() {
+    final delivery = context.read<DeliveryProvider>();
+    if (delivery.hasPendingAssignment && !_alertOpen) {
+      _alertOpen = true;
+      showModalBottomSheet<void>(
+        context: context,
+        isDismissible: false,
+        enableDrag: false,
+        backgroundColor: Colors.transparent,
+        builder: (_) => const NearbyOrderAlertSheet(),
+      ).whenComplete(() => _alertOpen = false);
+    }
   }
 
   @override
@@ -144,7 +168,7 @@ class _DeliveriesTab extends StatelessWidget {
                           scale: 0.85,
                           child: Switch(
                             value: delivery.isOnline,
-                            activeColor: const Color(0xFF10B981),
+                            activeTrackColor: const Color(0xFF10B981),
                             onChanged: (_) {
                               delivery.toggleOnline(driver.id);
                               auth.updateDriverOnlineStatus(!delivery.isOnline);
