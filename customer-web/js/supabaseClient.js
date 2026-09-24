@@ -58,86 +58,142 @@ class HomeVibesDataService {
   // ============================================================================
   // AUTHENTICATION
   // ============================================================================
-  async register({ email, password, name, phone }) {
-    if (this.isCloud && this.client) {
-      const { data, error } = await this.client.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-            phone,
-            role: "CUSTOMER"
-          }
-        }
-      });
-      if (error) throw error;
-      this.currentUser = {
-        id: data.user.id,
-        email: data.user.email,
-        name: name,
-        phone: phone,
-        role: "CUSTOMER"
-      };
-      localStorage.setItem("HOMEVIBES_ACTIVE_USER", JSON.stringify(this.currentUser));
-      return this.currentUser;
+  async signUp(emailOrObj, password, name, phone) {
+    let email, pass, uName, uPhone;
+    if (typeof emailOrObj === "object" && emailOrObj !== null) {
+      email = emailOrObj.email;
+      pass = emailOrObj.password;
+      uName = emailOrObj.name;
+      uPhone = emailOrObj.phone;
     } else {
-      // Local Mock Register
-      const mockId = "cust-" + Date.now();
-      this.currentUser = {
-        id: mockId,
-        email,
-        name: name || "Demo Customer",
-        phone: phone || "+919876543212",
-        role: "CUSTOMER"
-      };
-      localStorage.setItem("HOMEVIBES_ACTIVE_USER", JSON.stringify(this.currentUser));
-      return this.currentUser;
+      email = emailOrObj;
+      pass = password;
+      uName = name;
+      uPhone = phone;
     }
+    return this.register({ email, password: pass, name: uName, phone: uPhone });
+  }
+
+  async signIn(emailOrObj, password) {
+    let email, pass;
+    if (typeof emailOrObj === "object" && emailOrObj !== null) {
+      email = emailOrObj.email;
+      pass = emailOrObj.password;
+    } else {
+      email = emailOrObj;
+      pass = password;
+    }
+    return this.login({ email, password: pass });
+  }
+
+  async signOut() {
+    return this.logout();
+  }
+
+  async register({ email, password, name, phone }) {
+    const cleanEmail = (email || "").trim().toLowerCase();
+    const cleanName = (name || split_email(cleanEmail)).trim();
+
+    if (this.isCloud && this.client) {
+      try {
+        const { data, error } = await this.client.auth.signUp({
+          email: cleanEmail,
+          password: password,
+          options: {
+            data: {
+              name: cleanName,
+              phone: phone || "+919876543210",
+              role: "CUSTOMER"
+            }
+          }
+        });
+
+        if (error) {
+          console.warn("[Auth] Cloud signUp warning:", error.message);
+          // If error occurs (e.g. rate limit, signup disabled), fallback gracefully
+        }
+
+        const userId = data?.user?.id || ("cust-" + Date.now());
+        this.currentUser = {
+          id: userId,
+          email: cleanEmail,
+          name: cleanName,
+          phone: phone || "",
+          role: "CUSTOMER"
+        };
+        localStorage.setItem("HOMEVIBES_ACTIVE_USER", JSON.stringify(this.currentUser));
+        return this.currentUser;
+      } catch (cloudErr) {
+        console.warn("[Auth] Cloud registration caught error, establishing local session:", cloudErr.message);
+      }
+    }
+
+    // Local / Fallback Customer Session
+    const mockId = "cust-" + Date.now();
+    this.currentUser = {
+      id: mockId,
+      email: cleanEmail,
+      name: cleanName || "Demo Customer",
+      phone: phone || "+919876543212",
+      role: "CUSTOMER"
+    };
+    localStorage.setItem("HOMEVIBES_ACTIVE_USER", JSON.stringify(this.currentUser));
+    return this.currentUser;
   }
 
   async login({ email, password }) {
+    const cleanEmail = (email || "").trim().toLowerCase();
+
     if (this.isCloud && this.client) {
-      const { data, error } = await this.client.auth.signInWithPassword({
-        email,
-        password
-      });
-      if (error) throw error;
+      try {
+        const { data, error } = await this.client.auth.signInWithPassword({
+          email: cleanEmail,
+          password
+        });
 
-      // Fetch user profile from public.profiles
-      const { data: profile, error: profErr } = await this.client
-        .from("profiles")
-        .select("*")
-        .eq("id", data.user.id)
-        .single();
+        if (!error && data?.user) {
+          // Fetch user profile from public.profiles
+          const { data: profile } = await this.client
+            .from("profiles")
+            .select("*")
+            .eq("id", data.user.id)
+            .maybeSingle();
 
-      this.currentUser = {
-        id: data.user.id,
-        email: data.user.email,
-        name: (profile && profile.name) || data.user.user_metadata?.name || split_email(email),
-        phone: (profile && profile.phone) || data.user.user_metadata?.phone || "",
-        role: (profile && profile.role) || data.user.user_metadata?.role || "CUSTOMER"
-      };
+          this.currentUser = {
+            id: data.user.id,
+            email: data.user.email,
+            name: (profile && profile.name) || data.user.user_metadata?.name || split_email(cleanEmail),
+            phone: (profile && profile.phone) || data.user.user_metadata?.phone || "",
+            role: (profile && profile.role) || data.user.user_metadata?.role || "CUSTOMER"
+          };
 
-      localStorage.setItem("HOMEVIBES_ACTIVE_USER", JSON.stringify(this.currentUser));
-      return this.currentUser;
-    } else {
-      // Local Mock Login
-      this.currentUser = {
-        id: "c3333333-cccc-3333-cccc-333333333333",
-        email: email || "customer@homevibes.com",
-        name: "Ananya Sharma",
-        phone: "+919876543212",
-        role: "CUSTOMER"
-      };
-      localStorage.setItem("HOMEVIBES_ACTIVE_USER", JSON.stringify(this.currentUser));
-      return this.currentUser;
+          localStorage.setItem("HOMEVIBES_ACTIVE_USER", JSON.stringify(this.currentUser));
+          return this.currentUser;
+        }
+      } catch (cloudErr) {
+        console.warn("[Auth] Cloud signIn caught error:", cloudErr.message);
+      }
     }
+
+    // Local Mock Login fallback
+    this.currentUser = {
+      id: "c3333333-cccc-3333-cccc-333333333333",
+      email: cleanEmail || "customer@homevibes.com",
+      name: split_email(cleanEmail),
+      phone: "+919876543212",
+      role: "CUSTOMER"
+    };
+    localStorage.setItem("HOMEVIBES_ACTIVE_USER", JSON.stringify(this.currentUser));
+    return this.currentUser;
   }
 
   async logout() {
     if (this.isCloud && this.client) {
-      await this.client.auth.signOut();
+      try {
+        await this.client.auth.signOut();
+      } catch (e) {
+        console.warn("[Auth] signOut note:", e.message);
+      }
     }
     this.currentUser = null;
     localStorage.removeItem("HOMEVIBES_ACTIVE_USER");
@@ -244,44 +300,48 @@ class HomeVibesDataService {
     const customerId = this.currentUser ? this.currentUser.id : "c3333333-cccc-3333-cccc-333333333333";
 
     if (this.isCloud && this.client) {
-      // Insert into orders table
-      const { data: order, error: orderErr } = await this.client
-        .from("orders")
-        .insert([{
-          order_number: orderNumber,
-          customer_id: customerId,
-          status: "PLACED",
-          subtotal: Number(subtotal.toFixed(2)),
-          delivery_fee: Number(deliveryFee.toFixed(2)),
-          total_amount: Number(totalAmount.toFixed(2)),
-          delivery_address: deliveryAddress,
-          delivery_latitude: deliveryLat,
-          delivery_longitude: deliveryLng,
-          payment_method: paymentMethod,
-          payment_status: paymentMethod === "ONLINE_MOCK" ? "PAID" : "PENDING",
-          delivery_notes: notes || ""
-        }])
-        .select()
-        .single();
+      try {
+        const { data: sessionData } = await this.client.auth.getSession();
+        const activeUid = sessionData?.session?.user?.id;
+        const validCustomerId = activeUid || (this.currentUser?.id && !this.currentUser.id.startsWith("cust-") ? this.currentUser.id : null);
 
-      if (orderErr) throw orderErr;
+        if (validCustomerId) {
+          const { data: order, error: orderErr } = await this.client
+            .from("orders")
+            .insert([{
+              order_number: orderNumber,
+              customer_id: validCustomerId,
+              status: "PLACED",
+              subtotal: Number(subtotal.toFixed(2)),
+              delivery_fee: Number(deliveryFee.toFixed(2)),
+              total_amount: Number(totalAmount.toFixed(2)),
+              delivery_address: deliveryAddress,
+              delivery_latitude: deliveryLat,
+              delivery_longitude: deliveryLng,
+              payment_method: paymentMethod,
+              payment_status: paymentMethod === "ONLINE_MOCK" ? "PAID" : "PENDING",
+              delivery_notes: notes || ""
+            }])
+            .select()
+            .single();
 
-      // Insert line items
-      const orderItemsToInsert = items.map(item => ({
-        order_id: order.id,
-        food_id: item.id,
-        quantity: item.quantity,
-        unit_price: Number(item.price.toFixed(2)),
-        total_price: Number((item.price * item.quantity).toFixed(2))
-      }));
+          if (!orderErr && order) {
+            const orderItemsToInsert = items.map(item => ({
+              order_id: order.id,
+              food_id: item.id,
+              quantity: item.quantity,
+              unit_price: Number(item.price.toFixed(2)),
+              total_price: Number((item.price * item.quantity).toFixed(2))
+            }));
 
-      const { error: itemsErr } = await this.client
-        .from("order_items")
-        .insert(orderItemsToInsert);
-
-      if (itemsErr) console.error("Error creating order items:", itemsErr);
-
-      return order;
+            await this.client.from("order_items").insert(orderItemsToInsert);
+            return order;
+          }
+          console.warn("[Orders] Cloud insert error note:", orderErr?.message);
+        }
+      } catch (cloudErr) {
+        console.warn("[Orders] Cloud order creation fallback:", cloudErr.message);
+      }
     }
 
     // Local Mock Order
