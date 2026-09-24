@@ -1,0 +1,47 @@
+# Operating System Files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# IDE & Editor Files
+.idea/
+.vscode/
+*.iml
+
+# Environment Variables & Secrets (CRITICAL)
+.env
+.env.*
+!.env.example
+*.local
+supabase/.env
+customer-web/js/env.js
+admin-web/js/env.js
+driver-app/assets/config/env.json
+
+# Node / Web dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Flutter / Dart
+driver-app/.dart_tool/
+driver-app/.flutter-plugins
+driver-app/.flutter-plugins-dependencies
+driver-app/.packages
+driver-app/.pub-cache/
+driver-app/.pub/
+driver-app/build/
+driver-app/ios/Pods/
+driver-app/android/local.properties
+driver-app/android/key.properties
+driver-app/android/app/google-services.json
+driver-app/*.jks
+driver-app/*.keystore
+
+# Build Outputs
+*.apk
+*.aab
+dist/
+build/
