@@ -22,7 +22,7 @@ function createStaticServer(rootFolder, port, name) {
     if (reqPath === '/') reqPath = '/index.html';
 
     let filePath;
-    if (reqPath.startsWith('/customer-web/')) {
+    if (reqPath.startsWith('/customer-web/') || reqPath.startsWith('/driver-app/') || reqPath.startsWith('/admin-web/')) {
       filePath = path.join(__dirname, reqPath);
     } else {
       filePath = path.join(rootFolder, reqPath);
@@ -56,7 +56,7 @@ function createStaticServer(rootFolder, port, name) {
 
 const customerRoot = path.join(__dirname, 'customer-web');
 const adminRoot = path.join(__dirname, 'admin-web');
-const driverRoot = path.join(__dirname, 'driver-app', 'build', 'web');
+const driverRoot = path.join(__dirname, 'driver-web');
 const portalRoot = __dirname;
 
 createStaticServer(customerRoot, 3000, 'Customer Web App');
