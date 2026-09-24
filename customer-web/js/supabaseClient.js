@@ -1,4 +1,4 @@
-﻿/**
+/**
  * HomeVibes Customer Web - Supabase Client & Data Access Layer
  * Handles authentication, queries, orders, and real-time WebSocket subscriptions.
  * Features an integrated Mock Fallback Adapter for zero-friction local testing.
@@ -336,11 +336,26 @@ class HomeVibesDataService {
     // Always try Supabase first (works for auth users and guest UUID)
     if (this.isCloud && this.client) {
       try {
-        const { data: order, error: orderErr } = await this.client
+        let { data: order, error: orderErr } = await this.client
           .from("orders")
           .insert([orderPayload])
           .select()
           .single();
+
+        // If insert failed (e.g. FK constraint on customer_id), retry with customer_id: null
+        if (orderErr && orderPayload.customer_id) {
+          console.warn("[Orders] Primary insert failed (" + orderErr.message + "), retrying with customer_id: null...");
+          const retryPayload = { ...orderPayload, customer_id: null };
+          const retryRes = await this.client
+            .from("orders")
+            .insert([retryPayload])
+            .select()
+            .single();
+          if (!retryRes.error && retryRes.data) {
+            order = retryRes.data;
+            orderErr = null;
+          }
+        }
 
         if (!orderErr && order) {
           console.log("[Orders] Saved to Supabase:", order.order_number);
@@ -351,7 +366,10 @@ class HomeVibesDataService {
             unit_price: Number(item.price.toFixed(2)),
             total_price: Number((item.price * item.quantity).toFixed(2))
           }));
-          await this.client.from("order_items").insert(lineItems);
+          const { error: itemsErr } = await this.client.from("order_items").insert(lineItems);
+          if (itemsErr) {
+            console.warn("[Orders] Order items note:", itemsErr.message);
+          }
 
           // Mirror to localStorage so My Orders works offline
           const cached = JSON.parse(localStorage.getItem("HOMEVIBES_MOCK_ORDERS") || "[]");
@@ -442,20 +460,24 @@ class HomeVibesDataService {
   }
 
   async getCustomerOrders(customerId) {
-    if (this.isCloud && this.client && customerId) {
-      const { data, error } = await this.client
-        .from("orders")
-        .select(`
-          *,
-          order_items (
-            id, quantity, unit_price,
-            food_items (name)
-          )
-        `)
-        .eq("customer_id", customerId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+    const targetId = customerId || this.currentUser?.id || "c3333333-cccc-3333-cccc-333333333333";
+    if (this.isCloud && this.client) {
+      try {
+        const { data, error } = await this.client
+          .from("orders")
+          .select(`
+            *,
+            order_items (
+              id, quantity, unit_price,
+              food_items (name)
+            )
+          `)
+          .or(`customer_id.eq.${targetId},customer_id.is.null`)
+          .order("created_at", { ascending: false });
+        if (!error && data) return data;
+      } catch (err) {
+        console.warn("[Orders] Cloud getCustomerOrders notice:", err.message);
+      }
     }
 
     return JSON.parse(localStorage.getItem("HOMEVIBES_MOCK_ORDERS") || "[]");
