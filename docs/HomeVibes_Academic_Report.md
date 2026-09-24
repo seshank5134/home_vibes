@@ -15,10 +15,11 @@ Modern on-demand food delivery platforms require extreme scalability, sub-second
 ### 1. Introduction & Project Motivation
 Traditional web applications deployed as monoliths on single virtual machines suffer from single points of failure, resource wastage during off-peak hours, and polling overhead. In contrast, cloud-native architectures leverage managed cloud services (PaaS and FaaS) to achieve high availability, elastic auto-scaling, and micro-billing.
 
-HomeVibes addresses the cloud delivery challenge through a central kitchen business model connecting:
-1. **Customers:** Who discover food, manage carts, checkout with custom notes, and track orders on live maps.
-2. **Fleet Drivers:** Who toggle shift availability, receive dispatches, navigate to the central kitchen, and stream GPS coordinates during delivery.
-3. **Kitchen Administrators:** Who monitor live order queues, manage food item availability, and assign online drivers.
+HomeVibes addresses the cloud delivery challenge through a fresh DIY Indian meal kit delivery model connecting:
+1. **Customers:** Who discover authentic Indian recipes, view sealed raw ingredient manifests and step-by-step cooking scripts, checkout in Indian Rupees (₹), and track rapid dispatch on live telemetry maps.
+2. **Local Produce & Spice Vendors:** Raw material suppliers who package pre-portioned, sealed cuts and slow-simmered gravies into meal kits at local hubs, bypassing restaurant kitchen preparation delays.
+3. **Fleet Drivers:** Who toggle shift availability, receive dispatches from regional raw material hubs, and stream GPS coordinates during delivery.
+4. **Kitchen Hub Administrators:** Who monitor live order queues, manage meal kit inventory availability, and assign online fleet drivers.
 
 ---
 
@@ -37,11 +38,11 @@ The relational database is designed in Third Normal Form (3NF) to guarantee tran
 
 #### Key Tables Implemented:
 1. **`profiles`:** Synchronized with `auth.users` via database triggers, maintaining user roles (`CUSTOMER`, `DRIVER`, `ADMIN`).
-2. **`categories`:** Menu categorization with display sorting indexes.
-3. **`food_items`:** Menu catalogue with prices, prep times, ratings, and instant availability toggles.
+2. **`categories`:** Menu categorization with display sorting indexes (Biryani Kits, Curry & Gravy Kits, Paneer & Veg, etc.).
+3. **`food_items`:** Menu catalogue with prices in INR (₹), cook times, servings, spice levels, `raw_ingredients` (JSONB sealed items list), `cooking_script` (JSONB step-by-step chef instructions), and availability toggles.
 4. **`addresses`:** Customer delivery addresses with precise GPS coordinates.
 5. **`drivers`:** Fleet partner registry with vehicle type, shift online status, and latest telemetry.
-6. **`orders`:** Transactional records storing status, amounts, addresses, and payment modes.
+6. **`orders`:** Transactional records storing status, amounts in INR (₹), delivery addresses, and payment modes (UPI, COD, Card).
 7. **`order_items`:** Line items with purchase-time unit prices locked to prevent historical accounting discrepancies.
 8. **`driver_locations`:** Time-series GPS breadcrumbs recorded during active delivery trips.
 9. **`notifications`:** In-app and push notification audit trail.
