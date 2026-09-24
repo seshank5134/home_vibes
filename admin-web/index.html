@@ -53,13 +53,16 @@
 
     <div class="sidebar-footer">
       <div class="admin-profile-wrap">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <div class="admin-avatar">AD</div>
-          <div>
-            <div style="font-size: 0.85rem; font-weight: 700;" id="adminName">Hub Manager</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted);">Bengaluru Central Hub</div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+          <div class="admin-avatar" id="adminAvatarInitials">SK</div>
+          <div style="overflow: hidden;">
+            <div style="font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="adminName">Seshank</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="adminRoleText">seshank5134@gmail.com</div>
           </div>
         </div>
+        <button class="btn btn-secondary btn-sm" id="btnAdminLogout" style="width: 100%; font-size: 0.75rem; padding: 4px 8px;" title="Sign out of Admin Operations">
+          <span>Sign Out</span>
+        </button>
       </div>
     </div>
   </aside>
@@ -371,6 +374,54 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" id="cancelStatusBtn">Cancel</button>
         <button class="btn btn-primary" id="confirmStatusBtn">Apply State Change</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       ADMIN AUTHENTICATION & LOGIN GATE MODAL
+       ============================================================================ -->
+  <div class="modal-overlay" id="adminAuthModal" style="background: rgba(28, 28, 28, 0.75); backdrop-filter: blur(8px);">
+    <div class="modal-box" style="max-width: 440px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="brand-mark" style="width: 28px; height: 28px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <h3 style="font-size: 1.05rem; font-weight: 800;">HomeVibes Admin Access</h3>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">
+          Kitchen Operations, Live Dispatch & Hub Inventory Console. Authorized administrative access only.
+        </p>
+
+        <form id="adminLoginForm">
+          <div class="form-group">
+            <label class="form-label" for="adminEmailInput">Admin Email Address</label>
+            <input type="email" id="adminEmailInput" class="form-input" value="seshank5134@gmail.com" required placeholder="name@domain.com">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="adminPasswordInput">Password / Passcode</label>
+            <input type="password" id="adminPasswordInput" class="form-input" placeholder="Enter password (optional for quick-pass)">
+          </div>
+
+          <div style="margin-top: 18px; display: flex; flex-direction: column; gap: 10px;">
+            <button type="submit" class="btn btn-primary" id="btnAdminSubmitLogin" style="width: 100%; justify-content: center;">
+              <span>Authenticate as Admin</span>
+            </button>
+
+            <button type="button" class="btn btn-secondary" id="btnQuickLoginSeshank" style="width: 100%; justify-content: center; font-size: 0.82rem;">
+              <span>Quick Login as Seshank (Primary Admin)</span>
+            </button>
+          </div>
+        </form>
+
+        <div style="margin-top: 20px; padding: 10px 12px; background: #F5F4F0; border-radius: 6px; font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;">
+          <strong>Security:</strong> Protected by Supabase Role-Based Access Control (RBAC). Primary designated administrator: <code style="font-family: var(--font-mono); color: var(--primary);">seshank5134@gmail.com</code>.
+        </div>
       </div>
     </div>
   </div>

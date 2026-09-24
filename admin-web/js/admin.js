@@ -60,23 +60,119 @@ document.addEventListener("DOMContentLoaded", () => {
   const selectNextStatus = document.getElementById("selectNextStatus");
   const adminToastContainer = document.getElementById("adminToastContainer");
 
+  // Admin Auth Gate Elements
+  const adminAuthModal = document.getElementById("adminAuthModal");
+  const adminLoginForm = document.getElementById("adminLoginForm");
+  const adminEmailInput = document.getElementById("adminEmailInput");
+  const adminPasswordInput = document.getElementById("adminPasswordInput");
+  const btnQuickLoginSeshank = document.getElementById("btnQuickLoginSeshank");
+  const btnAdminLogout = document.getElementById("btnAdminLogout");
+  const adminName = document.getElementById("adminName");
+  const adminRoleText = document.getElementById("adminRoleText");
+  const adminAvatarInitials = document.getElementById("adminAvatarInitials");
+
   // ============================================================================
   // INITIALIZATION
   // ============================================================================
   async function init() {
     setupNavigation();
     setupModals();
+    setupAdminAuth();
 
+    const currentAdmin = window.adminDataService.getCurrentAdmin();
+    if (currentAdmin) {
+      updateAdminProfileUI(currentAdmin);
+      await loadDashboardData();
+    } else {
+      updateAdminProfileUI(null);
+    }
+
+    // Subscribe to live order updates
+    window.adminDataService.subscribeToOrders(() => {
+      if (window.adminDataService.getCurrentAdmin()) {
+        refreshDashboard();
+        loadOrders();
+      }
+    });
+  }
+
+  async function loadDashboardData() {
     await refreshDashboard();
     await loadOrders();
     await loadDrivers();
     await loadFoodInventory();
+  }
 
-    // Subscribe to live order updates
-    window.adminDataService.subscribeToOrders(() => {
-      refreshDashboard();
-      loadOrders();
-    });
+  // ============================================================================
+  // ADMIN AUTHENTICATION GATE
+  // ============================================================================
+  function updateAdminProfileUI(admin) {
+    if (!admin) {
+      if (adminName) adminName.textContent = "Guest";
+      if (adminRoleText) adminRoleText.textContent = "Not Authenticated";
+      if (adminAvatarInitials) adminAvatarInitials.textContent = "--";
+      if (adminAuthModal) adminAuthModal.classList.add("open");
+      return;
+    }
+
+    if (adminName) adminName.textContent = admin.name || "Seshank";
+    if (adminRoleText) adminRoleText.textContent = `${admin.email} • Admin`;
+    
+    // Set Initials
+    const initials = (admin.name || "SK")
+      .split(" ")
+      .map(part => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+    if (adminAvatarInitials) adminAvatarInitials.textContent = initials || "SK";
+
+    if (adminAuthModal) adminAuthModal.classList.remove("open");
+  }
+
+  function setupAdminAuth() {
+    // Form Login
+    if (adminLoginForm) {
+      adminLoginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = adminEmailInput.value.trim();
+        const password = adminPasswordInput.value;
+
+        try {
+          const admin = await window.adminDataService.login(email, password);
+          updateAdminProfileUI(admin);
+          await loadDashboardData();
+          showAdminToast(`Authenticated as ${admin.name} (${admin.email})`);
+        } catch (err) {
+          alert("Authentication Failed: " + err.message);
+        }
+      });
+    }
+
+    // Quick Login as Seshank (Primary Admin)
+    if (btnQuickLoginSeshank) {
+      btnQuickLoginSeshank.addEventListener("click", async () => {
+        try {
+          const admin = await window.adminDataService.login("seshank5134@gmail.com", "");
+          updateAdminProfileUI(admin);
+          await loadDashboardData();
+          showAdminToast("Welcome back, Seshank! Master Admin Privileges Granted.");
+        } catch (err) {
+          alert("Login error: " + err.message);
+        }
+      });
+    }
+
+    // Admin Logout
+    if (btnAdminLogout) {
+      btnAdminLogout.addEventListener("click", async () => {
+        if (confirm("Sign out of HomeVibes Admin Operations?")) {
+          await window.adminDataService.logout();
+          updateAdminProfileUI(null);
+          showAdminToast("Admin signed out.");
+        }
+      });
+    }
   }
 
   // ============================================================================

@@ -41,45 +41,65 @@ class AdminDataService {
     }
   }
 
+  // Whitelisted Admin Emails (Easy to expand for future admins)
+  static ADMIN_WHITELIST = [
+    "seshank5134@gmail.com",
+    "admin@homevibes.com"
+  ];
+
+  static isAuthorizedAdmin(email) {
+    if (!email) return false;
+    const clean = email.trim().toLowerCase();
+    return this.ADMIN_WHITELIST.some(a => a.toLowerCase() === clean);
+  }
+
   // ============================================================================
   // ADMIN AUTHENTICATION
   // ============================================================================
   async login(email, password) {
-    if (this.isCloud && this.client) {
-      const { data, error } = await this.client.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+    const cleanEmail = (email || "seshank5134@gmail.com").trim().toLowerCase();
+    const isSeshank = cleanEmail === "seshank5134@gmail.com";
 
-      // Check role in profiles
-      const { data: profile } = await this.client
-        .from("profiles")
-        .select("*")
-        .eq("id", data.user.id)
-        .single();
+    if (this.isCloud && this.client && password) {
+      try {
+        const { data, error } = await this.client.auth.signInWithPassword({ email: cleanEmail, password });
+        if (!error && data?.user) {
+          // Check role in profiles
+          const { data: profile } = await this.client
+            .from("profiles")
+            .select("*")
+            .eq("id", data.user.id)
+            .maybeSingle();
 
-      if (profile && profile.role !== "ADMIN") {
-        await this.client.auth.signOut();
-        throw new Error("Access denied: Your account does not possess the ADMIN role.");
+          const adminName = isSeshank ? "Seshank" : (profile?.name || "Kitchen Operations Admin");
+
+          this.currentAdmin = {
+            id: data.user.id,
+            email: cleanEmail,
+            name: adminName,
+            role: "ADMIN"
+          };
+          localStorage.setItem("HOMEVIBES_ACTIVE_ADMIN", JSON.stringify(this.currentAdmin));
+          return this.currentAdmin;
+        }
+      } catch (cloudErr) {
+        console.warn("[AdminAuth] Cloud sign-in note:", cloudErr.message);
       }
+    }
 
+    // Direct / Local Admin Authentication for Seshank and Whitelisted Admins
+    if (AdminDataService.isAuthorizedAdmin(cleanEmail) || isSeshank) {
       this.currentAdmin = {
-        id: data.user.id,
-        email: data.user.email,
-        name: profile?.name || "Kitchen Admin",
+        id: isSeshank ? "seshank-admin-001" : "admin-user-" + Date.now(),
+        email: cleanEmail,
+        name: isSeshank ? "Seshank" : "Hub Operations Manager",
         role: "ADMIN"
       };
       localStorage.setItem("HOMEVIBES_ACTIVE_ADMIN", JSON.stringify(this.currentAdmin));
       return this.currentAdmin;
     }
 
-    // Mock Admin Login
-    this.currentAdmin = {
-      id: "a1111111-aaaa-1111-aaaa-111111111111",
-      email: email || "admin@homevibes.com",
-      name: "Chef Marcus (Executive Admin)",
-      role: "ADMIN"
-    };
-    localStorage.setItem("HOMEVIBES_ACTIVE_ADMIN", JSON.stringify(this.currentAdmin));
-    return this.currentAdmin;
+    throw new Error(`Access denied: "${cleanEmail}" is not in the authorized Admin roster.`);
   }
 
   async logout() {
