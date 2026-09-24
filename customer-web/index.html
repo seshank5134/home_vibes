@@ -10,7 +10,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23E85D3F%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M6 13.87A8 8 0 0 1 14 6h.87a6 6 0 0 1 5 6v1a2 2 0 0 1-2 2H6Z%22/><path d=%22M6 17v4%22/><path d=%22M10 17v4%22/><path d=%22M14 17v4%22/></svg>">
 
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20260924_osm_v3">
   
   <!-- Leaflet CSS for Map Tracking -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -36,6 +36,16 @@
         </div>
         <div class="brand-title">Home<span>Vibes</span></div>
       </a>
+
+      <!-- Quick Delivery Location Selector in Navbar -->
+      <button class="nav-location-pill" id="navLocationBtn" title="Set delivery location" type="button">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div class="nav-location-text">
+          <span class="nav-location-title" id="navAddressLabel">Deliver to</span>
+          <span class="nav-location-desc" id="navAddressSnippet">Select Location</span>
+        </div>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
 
       <ul class="nav-links">
         <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
@@ -245,14 +255,99 @@
 
       <div class="modal-body">
         <div class="form-group">
-          <label class="form-label" for="checkoutAddressSelect">Delivery Location</label>
-          <select id="checkoutAddressSelect" class="form-select">
-            <option value="Koramangala 4th Block, Bengaluru">Koramangala 4th Block, Bengaluru (Home)</option>
-            <option value="Indiranagar 100ft Road, Bengaluru">Indiranagar 100ft Road, Bengaluru (Work)</option>
-            <option value="HSR Layout Sector 2, Bengaluru">HSR Layout Sector 2, Bengaluru (Other)</option>
-            <option value="Whitefield Main Road, Bengaluru">Whitefield Main Road, Bengaluru (Campus)</option>
-          </select>
-          <div class="form-help">Dispatched from the nearest raw materials supply hub.</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <label class="form-label" style="margin-bottom:0; font-weight:700;">Delivery Address</label>
+            <span style="font-size:0.75rem; color:var(--text-tertiary);" id="savedAddressCount">0 saved</span>
+          </div>
+
+          <!-- Active Selected Address Card (shown when an address is chosen) -->
+          <div id="selectedAddressCard" class="checkout-address-active" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+              <div style="flex:1;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                  <span id="selectedAddressBadge" class="address-tag-badge">HOME</span>
+                  <span id="selectedAddressCoords" style="font-size:0.72rem; color:var(--text-tertiary); font-family:monospace;"></span>
+                </div>
+                <div id="selectedAddressFull" style="font-size:0.88rem; font-weight:600; color:var(--text-primary); line-height:1.4;"></div>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" id="btnChangeAddress" style="font-size:0.75rem; padding:4px 10px; white-space:nowrap;">Change</button>
+            </div>
+          </div>
+
+          <!-- Empty State: Prompt user to add their location (Current GPS or Manual) -->
+          <div id="addressEmptyPrompt" class="checkout-address-prompt">
+            <div style="width:36px; height:36px; border-radius:50%; background:var(--accent-soft, #FDF1ED); display:flex; align-items:center; justify-content:center; margin:0 auto 8px; color:var(--accent);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div style="font-weight:700; font-size:0.92rem; color:var(--text-primary); margin-bottom:4px;">Where Should We Deliver?</div>
+            <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:12px;">Add your delivery location to dispatch meal kits from the nearest raw materials hub. We will remember it for future orders.</p>
+            <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+              <button type="button" class="btn btn-primary btn-sm" id="btnPromptGps" style="display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; padding:7px 14px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 12 8"/></svg>
+                <span>Use Current Location</span>
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btnPromptManual" style="display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; padding:7px 14px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Add Manually</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Saved Addresses List Drawer (collapsible when user clicks "Change") -->
+          <div id="savedAddressesDrawer" style="display:none; margin-bottom:10px; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:12px; background:var(--bg-surface);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-weight:700; font-size:0.82rem; color:var(--text-primary);">Your Saved Addresses</span>
+              <button type="button" id="btnCloseSavedDrawer" style="border:none; background:none; font-size:1.1rem; cursor:pointer; color:var(--text-secondary);">&times;</button>
+            </div>
+            <div id="savedAddressesList" style="display:flex; flex-direction:column; gap:8px; max-height:200px; overflow-y:auto; margin-bottom:10px;">
+              <!-- Dynamic saved address cards with radio selector + delete button -->
+            </div>
+            <div style="display:flex; gap:8px; border-top:1px solid var(--border-color); padding-top:10px;">
+              <button type="button" class="btn btn-secondary btn-sm" id="btnUseCurrentLocation" style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:0.78rem;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 12 8"/></svg>
+                <span>Detect Live GPS</span>
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btnToggleManualAddress" style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:0.78rem;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>+ Add Address</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Manual Address Entry Form (collapsible) -->
+          <div id="manualAddressDrawer" style="display:none; margin-top:8px; padding:14px; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md);">
+            <div style="font-weight:700; font-size:0.84rem; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+              <span>Add Custom Delivery Address</span>
+              <button type="button" id="btnCloseManualDrawer" style="border:none; background:none; font-size:1.1rem; cursor:pointer; color:var(--text-secondary);">&times;</button>
+            </div>
+            
+            <!-- Quick Tag Pills -->
+            <div style="margin-bottom:10px;">
+              <label style="font-size:0.72rem; color:var(--text-secondary); text-transform:uppercase; font-weight:600; display:block; margin-bottom:4px;">Address Tag</label>
+              <div style="display:flex; gap:6px;" id="addressTagContainer">
+                <button type="button" class="tag-pill active" data-tag="Home">Home</button>
+                <button type="button" class="tag-pill" data-tag="Work">Work</button>
+                <button type="button" class="tag-pill" data-tag="Hostel">Hostel</button>
+                <button type="button" class="tag-pill" data-tag="Other">Other</button>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+              <input type="text" id="manualAddressFlat" class="form-input" placeholder="Flat / House / Door No." style="font-size:0.8rem; padding:7px 10px;">
+              <input type="text" id="manualAddressBuilding" class="form-input" placeholder="Building / Society Name" style="font-size:0.8rem; padding:7px 10px;">
+            </div>
+            <textarea id="manualAddressStreet" class="form-textarea" rows="2" placeholder="Street, road, area, landmark..." style="font-size:0.8rem; padding:7px 10px; margin-bottom:8px;"></textarea>
+            <div style="display:grid; grid-template-columns:2fr 1fr; gap:8px; margin-bottom:10px;">
+              <input type="text" id="manualAddressCity" class="form-input" placeholder="City" style="font-size:0.8rem; padding:7px 10px;" value="Bengaluru">
+              <input type="text" id="manualAddressPincode" class="form-input" placeholder="Pincode" style="font-size:0.8rem; padding:7px 10px;">
+            </div>
+
+            <button type="button" class="btn btn-primary btn-sm" id="btnSaveManualAddress" style="width:100%; justify-content:center; font-size:0.82rem; padding:8px 12px;">
+              <span>Save & Use for Future Orders</span>
+            </button>
+          </div>
+
+          <div class="form-help" id="addressStatusNote" style="margin-top:6px;">All kits are dispatched from the nearest raw materials supply hub.</div>
         </div>
 
         <div class="form-group">
@@ -465,6 +560,7 @@
           <div class="form-group">
             <label class="form-label" for="cfgSupabaseKey">Supabase Anon Key</label>
             <input type="password" id="cfgSupabaseKey" class="form-input" placeholder="Configure in config.js or override here">
+            <div style="font-size:0.72rem; color:var(--text-tertiary); margin-top:4px;">The anon key is a public client key — safe to use in browser apps. Store secret keys server-side only.</div>
           </div>
           <button class="btn btn-secondary btn-sm" id="saveCloudConfigBtn">Save Configuration</button>
         </div>
@@ -472,6 +568,72 @@
 
       <div class="modal-footer">
         <button class="btn btn-secondary" id="closeCloudModalFooterBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       DELIVERY LOCATION MODAL (Opened from Navbar or Checkout)
+       ============================================================================ -->
+  <div class="modal-backdrop" id="addressModal">
+    <div class="modal-card" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Select Delivery Location</h3>
+        <button class="btn-icon-close" id="closeAddressModalBtn" aria-label="Close modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Quick Detect GPS Button -->
+        <div style="margin-bottom: 16px;">
+          <button type="button" class="btn btn-primary" id="btnModalUseGps" style="width: 100%; justify-content: center; gap: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 12 8"/></svg>
+            <span>Use Current Location (GPS)</span>
+          </button>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+          <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
+          <span style="font-size: 0.72rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Saved Locations</span>
+          <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
+        </div>
+
+        <!-- Saved Locations Container -->
+        <div id="modalSavedAddressList" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; margin-bottom: 14px;">
+          <!-- Injected via app.js -->
+        </div>
+
+        <!-- Add Manual Address Toggle -->
+        <button type="button" class="btn btn-secondary btn-sm" id="btnModalToggleManual" style="width: 100%; justify-content: center; gap: 6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Add New Address Manually</span>
+        </button>
+
+        <!-- Manual Address Form inside Address Modal -->
+        <div id="modalManualDrawer" style="display: none; margin-top: 12px; padding: 14px; background: var(--bg-surface-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+          <div style="margin-bottom: 8px;">
+            <label style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px;">Address Tag</label>
+            <div style="display: flex; gap: 6px;" id="modalAddressTagContainer">
+              <button type="button" class="tag-pill active" data-tag="Home">Home</button>
+              <button type="button" class="tag-pill" data-tag="Work">Work</button>
+              <button type="button" class="tag-pill" data-tag="Hostel">Hostel</button>
+              <button type="button" class="tag-pill" data-tag="Other">Other</button>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+            <input type="text" id="modalAddressFlat" class="form-input" placeholder="Flat / House No." style="font-size: 0.8rem; padding: 7px 10px;">
+            <input type="text" id="modalAddressBuilding" class="form-input" placeholder="Building / Society" style="font-size: 0.8rem; padding: 7px 10px;">
+          </div>
+          <textarea id="modalAddressStreet" class="form-textarea" rows="2" placeholder="Street, road, landmark..." style="font-size: 0.8rem; padding: 7px 10px; margin-bottom: 8px;"></textarea>
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px; margin-bottom: 10px;">
+            <input type="text" id="modalAddressCity" class="form-input" placeholder="City" value="Bengaluru" style="font-size: 0.8rem; padding: 7px 10px;">
+            <input type="text" id="modalAddressPincode" class="form-input" placeholder="Pincode" style="font-size: 0.8rem; padding: 7px 10px;">
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" id="btnModalSaveAddress" style="width: 100%; justify-content: center; font-size: 0.82rem; padding: 8px 12px;">
+            <span>Save & Set As Delivery Location</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -497,9 +659,9 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="js/config.js"></script>
-  <script src="js/mockData.js"></script>
-  <script src="js/supabaseClient.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/config.js?v=20260924_osm_v5"></script>
+  <script src="js/mockData.js?v=20260924_osm_v5"></script>
+  <script src="js/supabaseClient.js?v=20260924_osm_v5"></script>
+  <script src="js/app.js?v=20260924_osm_v5"></script>
 </body>
 </html>

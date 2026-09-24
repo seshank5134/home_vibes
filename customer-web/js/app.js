@@ -14,6 +14,8 @@ document.addEventListener("DOMContentLoaded", () => {
     searchQuery: "",
     activeOrder: null,
     unsubscribeRealtime: null,
+    addresses: [],
+    selectedAddressId: null,
     map: null,
     markers: {
       kitchen: null,
@@ -51,7 +53,56 @@ document.addEventListener("DOMContentLoaded", () => {
   const checkoutModal = document.getElementById("checkoutModal");
   const closeCheckoutBtn = document.getElementById("closeCheckoutBtn");
   const cancelCheckoutBtn = document.getElementById("cancelCheckoutBtn");
-  const checkoutAddressSelect = document.getElementById("checkoutAddressSelect");
+  
+  // Navbar Location
+  const navLocationBtn = document.getElementById("navLocationBtn");
+  const navAddressLabel = document.getElementById("navAddressLabel");
+  const navAddressSnippet = document.getElementById("navAddressSnippet");
+
+  // Checkout Address Card & Drawers
+  const selectedAddressCard = document.getElementById("selectedAddressCard");
+  const selectedAddressBadge = document.getElementById("selectedAddressBadge");
+  const selectedAddressCoords = document.getElementById("selectedAddressCoords");
+  const selectedAddressFull = document.getElementById("selectedAddressFull");
+  const btnChangeAddress = document.getElementById("btnChangeAddress");
+
+  const addressEmptyPrompt = document.getElementById("addressEmptyPrompt");
+  const btnPromptGps = document.getElementById("btnPromptGps");
+  const btnPromptManual = document.getElementById("btnPromptManual");
+
+  const savedAddressesDrawer = document.getElementById("savedAddressesDrawer");
+  const btnCloseSavedDrawer = document.getElementById("btnCloseSavedDrawer");
+  const savedAddressesList = document.getElementById("savedAddressesList");
+  const savedAddressCount = document.getElementById("savedAddressCount");
+  const btnUseCurrentLocation = document.getElementById("btnUseCurrentLocation");
+  const btnToggleManualAddress = document.getElementById("btnToggleManualAddress");
+
+  const manualAddressDrawer = document.getElementById("manualAddressDrawer");
+  const btnCloseManualDrawer = document.getElementById("btnCloseManualDrawer");
+  const addressTagContainer = document.getElementById("addressTagContainer");
+  const manualAddressFlat = document.getElementById("manualAddressFlat");
+  const manualAddressBuilding = document.getElementById("manualAddressBuilding");
+  const manualAddressStreet = document.getElementById("manualAddressStreet");
+  const manualAddressCity = document.getElementById("manualAddressCity");
+  const manualAddressPincode = document.getElementById("manualAddressPincode");
+  const btnSaveManualAddress = document.getElementById("btnSaveManualAddress");
+  const addressStatusNote = document.getElementById("addressStatusNote");
+
+  // Dedicated Address Modal
+  const addressModal = document.getElementById("addressModal");
+  const closeAddressModalBtn = document.getElementById("closeAddressModalBtn");
+  const btnModalUseGps = document.getElementById("btnModalUseGps");
+  const modalSavedAddressList = document.getElementById("modalSavedAddressList");
+  const btnModalToggleManual = document.getElementById("btnModalToggleManual");
+  const modalManualDrawer = document.getElementById("modalManualDrawer");
+  const modalAddressTagContainer = document.getElementById("modalAddressTagContainer");
+  const modalAddressFlat = document.getElementById("modalAddressFlat");
+  const modalAddressBuilding = document.getElementById("modalAddressBuilding");
+  const modalAddressStreet = document.getElementById("modalAddressStreet");
+  const modalAddressCity = document.getElementById("modalAddressCity");
+  const modalAddressPincode = document.getElementById("modalAddressPincode");
+  const btnModalSaveAddress = document.getElementById("btnModalSaveAddress");
+
   const checkoutPaymentMethod = document.getElementById("checkoutPaymentMethod");
   const checkoutNotes = document.getElementById("checkoutNotes");
   const checkoutItemsSummary = document.getElementById("checkoutItemsSummary");
@@ -109,6 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function init() {
     updateAuthUI();
     renderCart();
+    loadSavedAddresses();
 
     if (cfgSupabaseUrl && cfgSupabaseKey && window.AppConfig) {
       cfgSupabaseUrl.value = window.AppConfig.getSupabaseUrl();
@@ -440,10 +492,276 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ============================================================================
-  // CHECKOUT FLOW
+  // ADDRESS MANAGEMENT & CHECKOUT FLOW (Dynamic GPS & Manual with Persistence)
   // ============================================================================
+  function loadSavedAddresses() {
+    let saved = [];
+    try {
+      const raw = localStorage.getItem("HOMEVIBES_SAVED_ADDRESSES");
+      if (raw) {
+        saved = JSON.parse(raw);
+        // Filter out legacy hardcoded mock addresses (addr-blr-01, etc.)
+        saved = saved.filter(a => a && a.id && !a.id.startsWith("addr-blr-0"));
+      }
+    } catch (e) {
+      saved = [];
+    }
+
+    AppState.addresses = saved;
+    if (AppState.addresses.length > 0) {
+      const exists = AppState.addresses.some(a => a.id === AppState.selectedAddressId);
+      if (!exists) {
+        AppState.selectedAddressId = AppState.addresses[0].id;
+      }
+    } else {
+      AppState.selectedAddressId = null;
+    }
+
+    updateAddressUI();
+  }
+
+  function updateAddressUI() {
+    const hasAddresses = AppState.addresses && AppState.addresses.length > 0;
+    const current = hasAddresses ?
+      (AppState.addresses.find(a => a.id === AppState.selectedAddressId) || AppState.addresses[0]) :
+      null;
+
+    if (current) {
+      AppState.selectedAddressId = current.id;
+    }
+
+    // 1. Update Top Navbar Delivery Location Pill
+    if (navAddressSnippet) {
+      if (current) {
+        const shortAddr = current.address.split(",")[0] || current.address;
+        navAddressSnippet.textContent = `${current.label}: ${shortAddr}`;
+        navAddressSnippet.title = current.address;
+      } else {
+        navAddressSnippet.textContent = "Select Location";
+        navAddressSnippet.title = "Add your delivery location";
+      }
+    }
+
+    // 2. Update Checkout Modal Address Section
+    if (savedAddressCount) {
+      savedAddressCount.textContent = hasAddresses ? `${AppState.addresses.length} saved` : "0 saved";
+    }
+
+    if (hasAddresses && current) {
+      if (selectedAddressCard) selectedAddressCard.style.display = "block";
+      if (addressEmptyPrompt) addressEmptyPrompt.style.display = "none";
+      if (selectedAddressBadge) selectedAddressBadge.textContent = (current.label || "Home").toUpperCase();
+      if (selectedAddressCoords) selectedAddressCoords.textContent = `${current.latitude.toFixed(4)}, ${current.longitude.toFixed(4)}`;
+      if (selectedAddressFull) selectedAddressFull.textContent = current.address;
+      if (addressStatusNote) {
+        addressStatusNote.textContent = `Dispatch from Koramangala Hub • Destination: ${current.label} (${current.latitude.toFixed(4)}, ${current.longitude.toFixed(4)})`;
+      }
+    } else {
+      if (selectedAddressCard) selectedAddressCard.style.display = "none";
+      if (addressEmptyPrompt) addressEmptyPrompt.style.display = "block";
+      if (addressStatusNote) {
+        addressStatusNote.textContent = "Please add your delivery address (GPS or manual) to enable kit dispatch.";
+      }
+    }
+
+    // 3. Render Saved Addresses inside Drawers
+    renderSavedAddressList(savedAddressesList, "checkout");
+    renderSavedAddressList(modalSavedAddressList, "modal");
+  }
+
+  function renderSavedAddressList(container, context) {
+    if (!container) return;
+    if (!AppState.addresses || AppState.addresses.length === 0) {
+      container.innerHTML = `
+        <div style="padding:16px; text-align:center; color:var(--text-secondary); font-size:0.82rem; background:var(--bg-surface-subtle); border-radius:var(--radius-sm);">
+          No saved delivery addresses found. Use GPS detection or add an address manually below.
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = AppState.addresses.map(a => {
+      const isSelected = a.id === AppState.selectedAddressId;
+      return `
+        <div class="saved-address-card-row ${isSelected ? 'selected' : ''}" data-id="${a.id}">
+          <input type="radio" name="addrRadio_${context}" value="${a.id}" ${isSelected ? 'checked' : ''} style="margin-top:3px; cursor:pointer;">
+          <div style="flex:1; cursor:pointer;" class="addr-select-trigger" data-id="${a.id}">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
+              <span class="address-tag-badge" style="font-size:0.65rem;">${(a.label || "Home").toUpperCase()}</span>
+              <span style="font-size:0.7rem; color:var(--text-tertiary); font-family:monospace;">${a.latitude.toFixed(4)}, ${a.longitude.toFixed(4)}</span>
+            </div>
+            <div style="font-size:0.82rem; font-weight:600; color:var(--text-primary); line-height:1.3;">${a.address}</div>
+          </div>
+          <button type="button" class="btn-delete-addr" data-id="${a.id}" title="Remove this address" aria-label="Remove address">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      `;
+    }).join("");
+
+    // Bind item click and delete events in the rendered container
+    container.querySelectorAll(".addr-select-trigger, input[type=radio]").forEach(el => {
+      el.addEventListener("click", (e) => {
+        const addrId = el.getAttribute("data-id") || el.value;
+        if (addrId) {
+          AppState.selectedAddressId = addrId;
+          updateAddressUI();
+          if (savedAddressesDrawer) savedAddressesDrawer.style.display = "none";
+          if (addressModal) addressModal.classList.remove("open");
+          const target = AppState.addresses.find(x => x.id === addrId);
+          showToast(`Delivery location updated to: ${target?.label || 'Selected Address'}`, "info");
+        }
+      });
+    });
+
+    container.querySelectorAll(".btn-delete-addr").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const addrId = btn.getAttribute("data-id");
+        if (addrId) {
+          deleteAddress(addrId);
+        }
+      });
+    });
+  }
+
+  async function detectGpsLocation(btnElement) {
+    if (!navigator.geolocation) {
+      showToast("Geolocation is not supported by your browser.", "warning");
+      return;
+    }
+
+    const originalContent = btnElement ? btnElement.innerHTML : "";
+    if (btnElement) {
+      btnElement.innerHTML = `<span>Detecting GPS Location...</span>`;
+      btnElement.disabled = true;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = Number(pos.coords.latitude.toFixed(5));
+        const lng = Number(pos.coords.longitude.toFixed(5));
+        let addressText = `Live GPS Location (${lat}, ${lng})`;
+
+        try {
+          const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
+            headers: { 'Accept-Language': 'en' }
+          });
+          if (resp.ok) {
+            const geoData = await resp.json();
+            if (geoData && geoData.display_name) {
+              const parts = geoData.display_name.split(", ");
+              addressText = parts.slice(0, 4).join(", ");
+            }
+          }
+        } catch (geoErr) {
+          console.warn("Reverse geocode notice:", geoErr);
+        }
+
+        const newGpsAddr = {
+          id: "addr-gps-" + Date.now(),
+          label: "Live GPS",
+          address: addressText,
+          latitude: lat,
+          longitude: lng,
+          is_gps: true
+        };
+
+        AppState.addresses.unshift(newGpsAddr);
+        AppState.selectedAddressId = newGpsAddr.id;
+        localStorage.setItem("HOMEVIBES_SAVED_ADDRESSES", JSON.stringify(AppState.addresses));
+        updateAddressUI();
+
+        if (savedAddressesDrawer) savedAddressesDrawer.style.display = "none";
+        if (addressModal) addressModal.classList.remove("open");
+
+        if (btnElement) {
+          btnElement.innerHTML = originalContent;
+          btnElement.disabled = false;
+        }
+
+        showToast(`GPS Location saved and selected: ${addressText}`, "success");
+      },
+      (err) => {
+        if (btnElement) {
+          btnElement.innerHTML = originalContent;
+          btnElement.disabled = false;
+        }
+        console.warn("GPS notice:", err);
+        showToast("GPS access unavailable or permission denied. Please add address manually.", "info");
+        if (manualAddressDrawer) manualAddressDrawer.style.display = "block";
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  }
+
+  async function saveManualAddress({ label, flat, building, street, city, pincode, drawerElement }) {
+    if (!street && !flat && !building) {
+      showToast("Please enter your street or building address.", "warning");
+      return;
+    }
+
+    const parts = [flat, building, street, city, pincode].filter(Boolean);
+    const completeAddress = parts.join(", ");
+
+    let lat = 12.9716;
+    let lng = 77.5946;
+
+    try {
+      const query = [street, city, pincode].filter(Boolean).join(", ");
+      const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`, {
+        headers: { 'Accept-Language': 'en' }
+      });
+      if (resp.ok) {
+        const results = await resp.json();
+        if (results && results.length > 0) {
+          lat = Number(parseFloat(results[0].lat).toFixed(5));
+          lng = Number(parseFloat(results[0].lon).toFixed(5));
+        } else {
+          lat = Number((12.9716 + (Math.random() - 0.5) * 0.05).toFixed(5));
+          lng = Number((77.5946 + (Math.random() - 0.5) * 0.05).toFixed(5));
+        }
+      }
+    } catch (e) {
+      lat = Number((12.9716 + (Math.random() - 0.5) * 0.05).toFixed(5));
+      lng = Number((77.5946 + (Math.random() - 0.5) * 0.05).toFixed(5));
+    }
+
+    const newAddr = {
+      id: "addr-user-" + Date.now(),
+      label: label || "Home",
+      address: completeAddress,
+      latitude: lat,
+      longitude: lng,
+      is_gps: false
+    };
+
+    AppState.addresses.unshift(newAddr);
+    AppState.selectedAddressId = newAddr.id;
+    localStorage.setItem("HOMEVIBES_SAVED_ADDRESSES", JSON.stringify(AppState.addresses));
+    updateAddressUI();
+
+    if (drawerElement) drawerElement.style.display = "none";
+    if (savedAddressesDrawer) savedAddressesDrawer.style.display = "none";
+    if (addressModal) addressModal.classList.remove("open");
+
+    showToast(`Address "${label || 'Home'}" saved for future orders!`, "success");
+  }
+
+  function deleteAddress(id) {
+    AppState.addresses = AppState.addresses.filter(a => a.id !== id);
+    if (AppState.selectedAddressId === id) {
+      AppState.selectedAddressId = AppState.addresses.length > 0 ? AppState.addresses[0].id : null;
+    }
+    localStorage.setItem("HOMEVIBES_SAVED_ADDRESSES", JSON.stringify(AppState.addresses));
+    updateAddressUI();
+    showToast("Address removed from saved list.", "info");
+  }
+
   function openCheckout() {
     if (AppState.cart.length === 0) return;
+
+    loadSavedAddresses();
 
     let subtotal = 0;
     let summaryHtml = "";
@@ -480,6 +798,14 @@ document.addEventListener("DOMContentLoaded", () => {
   async function handleOrderSubmission() {
     if (AppState.cart.length === 0) return;
 
+    if (!AppState.addresses || AppState.addresses.length === 0 || !AppState.selectedAddressId) {
+      showToast("Please add your delivery location (GPS or manual) before placing order.", "warning");
+      if (manualAddressDrawer) manualAddressDrawer.style.display = "block";
+      return;
+    }
+
+    const selectedAddr = AppState.addresses.find(a => a.id === AppState.selectedAddressId) || AppState.addresses[0];
+
     submitOrderBtn.disabled = true;
     submitOrderBtn.textContent = "Placing Order...";
 
@@ -488,18 +814,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const total = subtotal + deliveryFee;
 
     const payload = {
-      address: checkoutAddressSelect.value,
-      paymentMethod: checkoutPaymentMethod.value,
-      notes: checkoutNotes.value,
-      items: AppState.cart.map(item => ({
-        food_id: item.id,
-        name: item.name,
-        quantity: item.quantity,
-        unit_price: item.price
-      })),
+      items: AppState.cart,
       subtotal: subtotal,
       deliveryFee: deliveryFee,
-      totalAmount: total
+      totalAmount: total,
+      deliveryAddress: selectedAddr.address,
+      deliveryLat: selectedAddr.latitude,
+      deliveryLng: selectedAddr.longitude,
+      paymentMethod: checkoutPaymentMethod ? checkoutPaymentMethod.value : "UPI",
+      notes: checkoutNotes ? checkoutNotes.value : ""
     };
 
     try {
@@ -527,7 +850,22 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================================================
   function openTrackingModal(order) {
     if (!order) {
-      order = window.dataService.getActiveMockOrder();
+      // Use a demo mock order for live tracking demonstration
+      order = {
+        id: "ord-demo-" + Date.now(),
+        order_number: "HV-" + Math.floor(100000 + Math.random() * 900000),
+        status: "PREPARING",
+        delivery_address: AppState.addresses.length > 0 
+          ? (AppState.addresses.find(a => a.id === AppState.selectedAddressId) || AppState.addresses[0]).address
+          : "HomeVibes Demo — Add your delivery address",
+        delivery_latitude: AppState.addresses.length > 0
+          ? (AppState.addresses.find(a => a.id === AppState.selectedAddressId) || AppState.addresses[0]).latitude
+          : 12.9784,
+        delivery_longitude: AppState.addresses.length > 0
+          ? (AppState.addresses.find(a => a.id === AppState.selectedAddressId) || AppState.addresses[0]).longitude
+          : 77.6408,
+        driver: { name: "Ravi Kumar", vehicle_type: "Electric Scooter", vehicle_number: "KA-01-HV-2026" }
+      };
     }
     AppState.activeOrder = order;
 
@@ -593,11 +931,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function initTrackingMap(order) {
-    const kitchenPos = [12.9352, 77.6245]; // Bengaluru Hub
-    const customerPos = [12.9716, 77.5946]; // Customer
+    const kitchenPos = [12.9352, 77.6245]; // Bengaluru Hub (Koramangala)
+    const customerPos = [
+      Number(order.delivery_latitude) || 12.9716, 
+      Number(order.delivery_longitude) || 77.5946
+    ];
+    const midLat = (kitchenPos[0] + customerPos[0]) / 2;
+    const midLng = (kitchenPos[1] + customerPos[1]) / 2;
     const driverPos = order.current_driver_location ? 
       [order.current_driver_location.lat, order.current_driver_location.lng] :
-      [12.9480, 77.6100];
+      [midLat, midLng];
 
     const mapElement = document.getElementById("liveTrackingMap");
     if (!mapElement) return;
@@ -608,8 +951,10 @@ document.addEventListener("DOMContentLoaded", () => {
         attributionControl: false
       }).setView(driverPos, 13);
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19
+      // Clean OpenStreetMap tiles (100% free, zero watermark)
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
       }).addTo(AppState.map);
 
       // Markers with SVG
@@ -631,8 +976,8 @@ document.addEventListener("DOMContentLoaded", () => {
         iconSize: [34, 34]
       });
 
-      AppState.markers.kitchen = L.marker(kitchenPos, { icon: hubIcon }).addTo(AppState.map).bindPopup("HomeVibes Raw Materials Hub");
-      AppState.markers.customer = L.marker(customerPos, { icon: customerIcon }).addTo(AppState.map).bindPopup("Delivery Address");
+      AppState.markers.kitchen = L.marker(kitchenPos, { icon: hubIcon }).addTo(AppState.map).bindPopup("HomeVibes Raw Materials Hub (Koramangala)");
+      AppState.markers.customer = L.marker(customerPos, { icon: customerIcon }).addTo(AppState.map).bindPopup(`Destination: ${order.delivery_address || 'Delivery Address'}`);
       AppState.markers.driver = L.marker(driverPos, { icon: driverIcon }).addTo(AppState.map).bindPopup("Delivery Fleet Agent");
 
       AppState.routeLine = L.polyline([kitchenPos, driverPos, customerPos], {
@@ -640,11 +985,18 @@ document.addEventListener("DOMContentLoaded", () => {
         weight: 3,
         dashArray: '6, 6'
       }).addTo(AppState.map);
+
+      try {
+        AppState.map.fitBounds([kitchenPos, driverPos, customerPos], { padding: [35, 35] });
+      } catch (e) {}
     } else {
       AppState.map.invalidateSize();
+      AppState.markers.customer.setLatLng(customerPos).setPopupContent(`Destination: ${order.delivery_address || 'Delivery Address'}`);
       AppState.markers.driver.setLatLng(driverPos);
       AppState.routeLine.setLatLngs([kitchenPos, driverPos, customerPos]);
-      AppState.map.panTo(driverPos);
+      try {
+        AppState.map.fitBounds([kitchenPos, driverPos, customerPos], { padding: [35, 35] });
+      } catch (e) {}
     }
   }
 
@@ -653,7 +1005,7 @@ document.addEventListener("DOMContentLoaded", () => {
       AppState.unsubscribeRealtime();
     }
 
-    AppState.unsubscribeRealtime = window.dataService.subscribeToOrderUpdates(
+    AppState.unsubscribeRealtime = window.dataService.subscribeToOrder(
       orderId,
       (updatedOrder) => {
         AppState.activeOrder = updatedOrder;
@@ -676,42 +1028,60 @@ document.addEventListener("DOMContentLoaded", () => {
     ordersHistoryList.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-secondary);">Loading orders...</div>`;
     ordersModal.classList.add("open");
 
-    try {
-      const orders = await window.dataService.getUserOrders();
-      if (!orders || orders.length === 0) {
-        ordersHistoryList.innerHTML = `
-          <div style="padding: 32px 16px; text-align: center; color: var(--text-secondary);">
-            <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">No past orders found</div>
-            <p style="font-size: 0.85rem;">Your completed meal kit deliveries will appear here.</p>
-          </div>
-        `;
-        return;
-      }
+    let orders = [];
 
-      ordersHistoryList.innerHTML = orders.map(ord => `
-        <div style="padding: 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 12px; background: var(--bg-surface);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span style="font-weight: 700; font-size: 0.95rem;">Order #${ord.order_number || ord.id.slice(0, 8)}</span>
-            <span style="font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--bg-surface-subtle); border: 1px solid var(--border-color); text-transform: uppercase;">${ord.status}</span>
-          </div>
-          <div style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 8px;">
-            ${new Date(ord.created_at).toLocaleDateString("en-IN", { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-light); padding-top: 8px;">
-            <span style="font-weight: 800; font-size: 1rem;">&#8377;${Number(ord.total_amount).toFixed(0)}</span>
-            <button class="btn btn-secondary btn-sm" onclick="window.trackExistingOrder('${ord.id}')">Track</button>
-          </div>
-        </div>
-      `).join("");
+    // Always load local orders first as a baseline
+    const localOrders = JSON.parse(localStorage.getItem("HOMEVIBES_MOCK_ORDERS") || "[]");
+
+    try {
+      const userId = window.dataService.getCurrentUser()?.id;
+      if (userId && window.dataService.isCloud) {
+        const cloudOrders = await window.dataService.getCustomerOrders(userId);
+        // Merge cloud orders with any local ones not already present
+        const cloudIds = new Set((cloudOrders || []).map(o => o.id));
+        const localOnly = localOrders.filter(o => !cloudIds.has(o.id));
+        orders = [...(cloudOrders || []), ...localOnly];
+      } else {
+        orders = localOrders;
+      }
     } catch (err) {
-      ordersHistoryList.innerHTML = `<div style="padding: 24px; color: var(--danger);">Failed to load order history.</div>`;
+      console.warn("[Orders] Cloud fetch notice, using local fallback:", err.message);
+      orders = localOrders;
     }
+
+    if (!orders || orders.length === 0) {
+      ordersHistoryList.innerHTML = `
+        <div style="padding: 32px 16px; text-align: center; color: var(--text-secondary);">
+          <div style="font-size:2rem; margin-bottom:8px; opacity:0.3;">&#9707;</div>
+          <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">No past orders found</div>
+          <p style="font-size: 0.85rem;">Your completed meal kit deliveries will appear here after your first order.</p>
+        </div>
+      `;
+      return;
+    }
+
+    ordersHistoryList.innerHTML = orders.map(ord => `
+      <div style="padding: 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 12px; background: var(--bg-surface);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-weight: 700; font-size: 0.95rem;">Order #${ord.order_number || (ord.id || "").slice(0, 8)}</span>
+          <span style="font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--bg-surface-subtle); border: 1px solid var(--border-color); text-transform: uppercase;">${(ord.status || "placed").toLowerCase()}</span>
+        </div>
+        <div style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 4px;">
+          ${ord.delivery_address ? `<span style="color:var(--text-primary); font-weight:500;">${ord.delivery_address.split(",")[0]}</span> &bull; ` : ""}
+          ${new Date(ord.created_at || Date.now()).toLocaleDateString("en-IN", { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 8px; margin-top:8px;">
+          <span style="font-weight: 800; font-size: 1rem;">&#8377;${Number(ord.total_amount || 0).toFixed(0)}</span>
+          <button class="btn btn-secondary btn-sm" onclick="window.trackExistingOrder('${ord.id}')">Track Order</button>
+        </div>
+      </div>
+    `).join("");
   }
 
   window.trackExistingOrder = async (orderId) => {
     ordersModal.classList.remove("open");
     try {
-      const order = await window.dataService.getOrderById(orderId);
+      const order = await window.dataService.getOrder(orderId);
       openTrackingModal(order);
     } catch (err) {
       showToast("Could not load order tracking", "warning");
@@ -818,11 +1188,131 @@ document.addEventListener("DOMContentLoaded", () => {
       cartBackdrop.classList.remove("open");
     });
 
-    // Checkout
+    // Checkout & Addresses
     proceedCheckoutBtn.addEventListener("click", openCheckout);
     closeCheckoutBtn.addEventListener("click", () => checkoutModal.classList.remove("open"));
     cancelCheckoutBtn.addEventListener("click", () => checkoutModal.classList.remove("open"));
     submitOrderBtn.addEventListener("click", handleOrderSubmission);
+
+    // Navbar Delivery Location Pill
+    if (navLocationBtn) {
+      navLocationBtn.addEventListener("click", () => {
+        if (addressModal) addressModal.classList.add("open");
+      });
+    }
+
+    if (closeAddressModalBtn) {
+      closeAddressModalBtn.addEventListener("click", () => {
+        if (addressModal) addressModal.classList.remove("open");
+      });
+    }
+
+    if (addressModal) {
+      addressModal.addEventListener("click", (e) => {
+        if (e.target === addressModal) addressModal.classList.remove("open");
+      });
+    }
+
+    if (btnModalUseGps) {
+      btnModalUseGps.addEventListener("click", () => detectGpsLocation(btnModalUseGps));
+    }
+
+    if (btnModalToggleManual) {
+      btnModalToggleManual.addEventListener("click", () => {
+        if (!modalManualDrawer) return;
+        modalManualDrawer.style.display = modalManualDrawer.style.display === "none" ? "block" : "none";
+      });
+    }
+
+    if (modalAddressTagContainer) {
+      modalAddressTagContainer.querySelectorAll(".tag-pill").forEach(pill => {
+        pill.addEventListener("click", () => {
+          modalAddressTagContainer.querySelectorAll(".tag-pill").forEach(p => p.classList.remove("active"));
+          pill.classList.add("active");
+        });
+      });
+    }
+
+    if (btnModalSaveAddress) {
+      btnModalSaveAddress.addEventListener("click", () => {
+        const activeTag = modalAddressTagContainer?.querySelector(".tag-pill.active")?.getAttribute("data-tag") || "Home";
+        saveManualAddress({
+          label: activeTag,
+          flat: modalAddressFlat?.value?.trim() || "",
+          building: modalAddressBuilding?.value?.trim() || "",
+          street: modalAddressStreet?.value?.trim() || "",
+          city: modalAddressCity?.value?.trim() || "Bengaluru",
+          pincode: modalAddressPincode?.value?.trim() || "",
+          drawerElement: modalManualDrawer
+        });
+      });
+    }
+
+    // Checkout Address Interactions
+    if (btnChangeAddress) {
+      btnChangeAddress.addEventListener("click", () => {
+        if (!savedAddressesDrawer) return;
+        savedAddressesDrawer.style.display = savedAddressesDrawer.style.display === "none" ? "block" : "none";
+      });
+    }
+
+    if (btnCloseSavedDrawer) {
+      btnCloseSavedDrawer.addEventListener("click", () => {
+        if (savedAddressesDrawer) savedAddressesDrawer.style.display = "none";
+      });
+    }
+
+    if (btnPromptGps) {
+      btnPromptGps.addEventListener("click", () => detectGpsLocation(btnPromptGps));
+    }
+
+    if (btnPromptManual) {
+      btnPromptManual.addEventListener("click", () => {
+        if (manualAddressDrawer) manualAddressDrawer.style.display = "block";
+      });
+    }
+
+    if (btnToggleManualAddress) {
+      btnToggleManualAddress.addEventListener("click", () => {
+        if (!manualAddressDrawer) return;
+        manualAddressDrawer.style.display = manualAddressDrawer.style.display === "none" ? "block" : "none";
+      });
+    }
+
+    if (btnCloseManualDrawer) {
+      btnCloseManualDrawer.addEventListener("click", () => {
+        if (manualAddressDrawer) manualAddressDrawer.style.display = "none";
+      });
+    }
+
+    // Checkout manual tag pills
+    if (addressTagContainer) {
+      addressTagContainer.querySelectorAll(".tag-pill").forEach(pill => {
+        pill.addEventListener("click", () => {
+          addressTagContainer.querySelectorAll(".tag-pill").forEach(p => p.classList.remove("active"));
+          pill.classList.add("active");
+        });
+      });
+    }
+
+    if (btnSaveManualAddress) {
+      btnSaveManualAddress.addEventListener("click", () => {
+        const activeTag = addressTagContainer?.querySelector(".tag-pill.active")?.getAttribute("data-tag") || "Home";
+        saveManualAddress({
+          label: activeTag,
+          flat: manualAddressFlat?.value?.trim() || "",
+          building: manualAddressBuilding?.value?.trim() || "",
+          street: manualAddressStreet?.value?.trim() || "",
+          city: manualAddressCity?.value?.trim() || "Bengaluru",
+          pincode: manualAddressPincode?.value?.trim() || "",
+          drawerElement: manualAddressDrawer
+        });
+      });
+    }
+
+    if (btnUseCurrentLocation) {
+      btnUseCurrentLocation.addEventListener("click", () => detectGpsLocation(btnUseCurrentLocation));
+    }
 
     // Recipe Modal Close
     closeRecipeModalBtn.addEventListener("click", () => recipeModal.classList.remove("open"));
