@@ -45,3 +45,4 @@ driver-app/*.keystore
 *.aab
 dist/
 build/
+supabase/.temp/

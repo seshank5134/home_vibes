@@ -220,12 +220,17 @@
 <body>
 
   <header class="top-bar">
-    <div class="brand-title">Home<span>Vibes</span> &bull; Cloud Computing Slide Deck</div>
+    <div style="display:flex; align-items:center; gap:16px;">
+      <a href="../index.html" class="btn" style="text-decoration:none;" title="Back to Platform Portal">&larr; Portal</a>
+      <div class="brand-title">Home<span>Vibes</span> &bull; Cloud Computing Slide Deck</div>
+    </div>
     <div class="nav-controls">
-      <button class="btn" id="btnToggleNotes">Toggle Notes (N)</button>
-      <button class="btn" id="btnPrev">&larr; Prev (Left)</button>
+      <a href="../customer-web/index.html" class="btn" style="text-decoration:none;" title="Open Customer App">Customer</a>
+      <a href="../admin-web/index.html" class="btn" style="text-decoration:none;" title="Open Admin Console">Admin</a>
+      <button class="btn" id="btnToggleNotes">Notes (N)</button>
+      <button class="btn" id="btnPrev">&larr; Prev</button>
       <div class="slide-counter" id="slideCounter">1 / 13</div>
-      <button class="btn btn-primary" id="btnNext">Next (Right) &rarr;</button>
+      <button class="btn btn-primary" id="btnNext">Next &rarr;</button>
     </div>
   </header>
 
