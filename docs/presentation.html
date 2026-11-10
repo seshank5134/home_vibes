@@ -4,17 +4,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HomeVibes — Cloud Computing Academic Presentation</title>
+  <title>HomeVibes — SWE4004 Review-2 Academic Presentation</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
 
     :root {
-      --bg: #FAFAF7;
+      --bg: #F4F4F0;
       --surface: #FFFFFF;
       --primary: #1C1C1C;
       --accent: #E85D3F;
-      --muted: #6B6B6B;
-      --border: #E7E4DE;
+      --accent-soft: #FDF1ED;
+      --vit-maroon: #800000;
+      --muted: #555555;
+      --border: #E2DFD8;
       --font-main: 'Plus Jakarta Sans', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
     }
@@ -37,7 +39,7 @@
 
     /* Top Controls Bar */
     .top-bar {
-      height: 54px;
+      height: 56px;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       display: flex;
@@ -49,17 +51,30 @@
 
     .brand-title {
       font-weight: 800;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .brand-title span {
       color: var(--accent);
     }
 
+    .tag-review {
+      background: #FEE2E2;
+      color: var(--vit-maroon);
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }
+
     .nav-controls {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .btn {
@@ -70,7 +85,12 @@
       background: var(--surface);
       border-radius: 6px;
       cursor: pointer;
+      text-decoration: none;
+      color: var(--primary);
       transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .btn:hover {
@@ -91,7 +111,7 @@
       font-size: 0.85rem;
       font-weight: 700;
       color: var(--muted);
-      min-width: 60px;
+      min-width: 65px;
       text-align: center;
     }
 
@@ -101,22 +121,22 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 32px;
+      padding: 24px 32px;
       position: relative;
     }
 
     .slide-card {
       width: 100%;
-      max-width: 1040px;
+      max-width: 1100px;
       height: 100%;
-      max-height: 640px;
+      max-height: 680px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 48px;
+      padding: 40px 48px;
       display: none;
       flex-direction: column;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
       overflow-y: auto;
     }
 
@@ -130,7 +150,6 @@
         opacity: 0;
         transform: translateY(6px);
       }
-
       to {
         opacity: 1;
         transform: translateY(0);
@@ -138,24 +157,28 @@
     }
 
     .slide-eyebrow {
-      font-size: 0.8rem;
-      font-weight: 700;
+      font-size: 0.78rem;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--accent);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
     .slide-heading {
-      font-size: 2rem;
+      font-size: 1.85rem;
       font-weight: 800;
       letter-spacing: -0.02em;
-      margin-bottom: 24px;
-      line-height: 1.2;
+      margin-bottom: 20px;
+      line-height: 1.25;
+      color: #111827;
     }
 
     .slide-content {
-      font-size: 1rem;
+      font-size: 0.95rem;
       line-height: 1.6;
       color: var(--primary);
       flex: 1;
@@ -163,7 +186,7 @@
 
     .slide-content ul {
       margin-left: 20px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .slide-content li {
@@ -173,12 +196,19 @@
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-top: 12px;
+      gap: 18px;
+      margin-top: 10px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-top: 10px;
     }
 
     .info-box {
-      background: #F8F8F5;
+      background: #F9F9F6;
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 16px;
@@ -189,35 +219,55 @@
       font-weight: 700;
       margin-bottom: 6px;
       color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .info-box p {
-      font-size: 0.85rem;
+      font-size: 0.86rem;
       color: var(--muted);
       line-height: 1.45;
     }
 
+    table.slide-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 0.85rem;
+    }
+    table.slide-table th, table.slide-table td {
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      text-align: left;
+    }
+    table.slide-table th {
+      background: #F3F4F6;
+      font-weight: 700;
+    }
+    table.slide-table tr:nth-child(even) { background: #FAFAF7; }
+
     .code-box {
       font-family: var(--font-mono);
-      background: #1C1C1C;
+      background: #111827;
       color: #F8FAFC;
-      padding: 16px;
+      padding: 14px;
       border-radius: 8px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       line-height: 1.4;
       white-space: pre;
       overflow-x: auto;
-      margin-top: 12px;
+      margin-top: 10px;
     }
 
     .speaker-notes-drawer {
       background: #FFFBEB;
       border: 1px solid #FDE68A;
       border-radius: 8px;
-      padding: 12px 16px;
+      padding: 10px 14px;
       font-size: 0.82rem;
       color: #92400E;
-      margin-top: auto;
+      margin-top: 16px;
       display: none;
     }
 
@@ -235,8 +285,27 @@
     .progress-bar-fill {
       height: 100%;
       background: var(--accent);
-      width: 8%;
+      width: 6.25%;
       transition: width 0.2s ease;
+    }
+
+    .flow-badge {
+      display: inline-block;
+      background: #E0E7FF;
+      color: #3730A3;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.75rem;
+      margin-right: 6px;
+    }
+
+    .ui-mock-card {
+      background: #FFFFFF;
+      border: 1px solid #D1D5DB;
+      border-radius: 8px;
+      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
   </style>
 </head>
@@ -244,19 +313,21 @@
 <body>
 
   <header class="top-bar">
-    <div style="display:flex; align-items:center; gap:16px;">
-      <a href="../index.html" class="btn" style="text-decoration:none;" title="Back to Platform Portal">&larr;
-        Portal</a>
-      <div class="brand-title">Home<span>Vibes</span> &bull; Cloud Computing Slide Deck</div>
+    <div style="display:flex; align-items:center; gap:14px;">
+      <a href="../index.html" class="btn" title="Back to Platform Portal">&larr; Portal</a>
+      <a href="report.html" class="btn" title="Open Full Academic Report">Report</a>
+      <div class="brand-title">
+        Home<span>Vibes</span>
+        <span class="tag-review">SWE4004 REVIEW-2</span>
+      </div>
     </div>
     <div class="nav-controls">
-      <a href="../customer-web/index.html" class="btn" style="text-decoration:none;"
-        title="Open Customer App">Customer</a>
-      <a href="../admin-web/index.html" class="btn" style="text-decoration:none;" title="Open Admin Console">Admin</a>
-      <a href="../driver-web/index.html" class="btn" style="text-decoration:none;" title="Open Driver App">Driver</a>
+      <a href="../customer-web/index.html" class="btn" title="Open Customer App">Customer</a>
+      <a href="../admin-web/index.html" class="btn" title="Open Admin Console">Admin</a>
+      <a href="../driver-web/index.html" class="btn" title="Open Driver App">Driver</a>
       <button class="btn" id="btnToggleNotes">Notes (N)</button>
       <button class="btn" id="btnPrev">&larr; Prev</button>
-      <div class="slide-counter" id="slideCounter">1 / 13</div>
+      <div class="slide-counter" id="slideCounter">1 / 16</div>
       <button class="btn btn-primary" id="btnNext">Next &rarr;</button>
     </div>
   </header>
@@ -267,387 +338,682 @@
 
   <main class="slide-stage">
 
-    <!-- SLIDE 1 -->
+    <!-- SLIDE 1: Title & Authors -->
     <div class="slide-card active" data-slide="1">
-      <div class="slide-eyebrow">Academic Course Evaluation</div>
-      <h1 class="slide-heading">HomeVibes: A Cloud-Native Indian DIY Meal Kit & Real-Time Telemetry Ecosystem</h1>
+      <div class="slide-eyebrow">
+        <span>SWE4004 — CLOUD COMPUTING AND ITS APPLICATIONS</span>
+        <span class="tag-review">REVIEW-2</span>
+      </div>
+      <h1 class="slide-heading" style="color:var(--vit-maroon); font-size:2rem; margin-bottom:12px;">
+        HomeVibes: A Cloud-Native Indian DIY Meal Kit Delivery & Real-Time Fleet Management Platform
+      </h1>
+      <p style="font-size: 1.1rem; color: var(--muted); margin-bottom: 24px;">
+        A three-tier system connecting customers, delivery partners, and hub administrators on a single Supabase-powered cloud backend.
+      </p>
+
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="info-box" style="border-left: 4px solid var(--vit-maroon);">
+          <h4 style="color:var(--vit-maroon);">SUBMITTED BY:</h4>
+          <p style="font-size:0.95rem; font-weight:700; color:#111827; margin-top:4px;">
+            • 24MIC7062 — Vyshnavi<br>
+            • 24MIC7069 — Meghana<br>
+            • 24MIS7354 — Karthikeya
+          </p>
+          <p style="margin-top:8px; font-size:0.82rem; color:var(--muted);">
+            School of Computer Science and Engineering &bull; VIT-AP University
+          </p>
+        </div>
+        <div class="info-box" style="border-left: 4px solid var(--accent);">
+          <h4 style="color:var(--accent);">GUIDED BY:</h4>
+          <p style="font-size:0.95rem; font-weight:700; color:#111827; margin-top:4px;">
+            Dr. M. Jawahar
+          </p>
+          <p style="font-size:0.85rem; color:var(--muted);">
+            Associate Professor Grade 2<br>
+            VIT-AP University, Amaravati
+          </p>
+          <p style="margin-top:8px; font-size:0.8rem; color:#047857; font-weight:700;">
+            Cloud Stack: Supabase PaaS &bull; PostgreSQL 15 &bull; Flutter 3 &bull; WebSockets
+          </p>
+        </div>
+      </div>
+
+      <div class="speaker-notes-drawer">
+        <strong>Speaker Notes:</strong> "Good morning professors. Today we present Review-2 of HomeVibes, our cloud computing project. HomeVibes is a cloud-native platform connecting customers, delivery partners, and central hub administrators on a managed Supabase backend, solving the restaurant cooking delay bottleneck through an Indian DIY meal kit model."
+      </div>
+    </div>
+
+    <!-- SLIDE 2: Problem Statement -->
+    <div class="slide-card" data-slide="2">
+      <div class="slide-eyebrow">
+        <span>HomeVibes | SWE4004 Review-2</span>
+        <span>Slide 2</span>
+      </div>
+      <h2 class="slide-heading">Problem Statement</h2>
       <div class="slide-content">
-        <p style="font-size: 1.15rem; color: var(--muted); margin-bottom: 24px;">
-          An Enterprise Multi-Tier Cloud Architecture Built with PaaS, FaaS, and Mobile Edge Computing.
+        <p style="font-size:1.05rem; color:var(--muted); margin-bottom:16px;">
+          Conventional food delivery depends on restaurant kitchens, which creates delay, quality loss, and poor operational visibility.
         </p>
-        <div class="grid-2">
+        <div class="grid-3">
           <div class="info-box">
-            <h4>Course Evaluation</h4>
-            <p>Cloud Computing & Distributed Applications</p>
-            <p style="margin-top: 4px;"><strong>Target:</strong> Comprehensive Viva Voce & Practical Lab Evaluation</p>
+            <h4>⏱️ High Delivery Latency</h4>
+            <p>Delivery time is dominated by kitchen preparation backlogs, often <strong>45–60 minutes</strong> end to end.</p>
           </div>
           <div class="info-box">
-            <h4>Live Endpoints & Cloud Stack</h4>
-            <p><strong>Database PaaS:</strong> Supabase PostgreSQL 15 (AWS Mumbai)</p>
-            <p><strong>Customer Web:</strong> Port 3000 &bull; <strong>Admin Console:</strong> Port 3001</p>
-            <p><strong>Mobile Fleet:</strong> Flutter 3.x Android Client</p>
+            <h4>🍲 Quality Degradation</h4>
+            <p>Cooked food loses freshness, heat, and texture during transit, and packaging cannot fully prevent it.</p>
+          </div>
+          <div class="info-box">
+            <h4>📡 Fragmented Operations</h4>
+            <p>Customers, drivers, and admins lack one secure, real-time view of orders, stock, and vehicle location.</p>
+          </div>
+        </div>
+        <div class="info-box" style="margin-top:20px; background:#FEF2F2; border-color:#FCA5A5;">
+          <h4 style="color:#B91C1C;">Core Problem Formulation</h4>
+          <p style="color:#7F1D1D; font-size:0.92rem;">
+            There is no scalable, secure, and real-time cloud platform that removes the kitchen bottleneck by delivering pre-portioned raw-ingredient kits with cooking scripts, while giving every stakeholder live visibility.
+          </p>
+        </div>
+      </div>
+      <div class="speaker-notes-drawer">
+        <strong>Speaker Notes:</strong> "In conventional delivery, up to 60% of the wait time happens in restaurant kitchens. Furthermore, cooked food degrades in transit, and systems suffer from fragmented operational views. HomeVibes addresses this directly."
+      </div>
+    </div>
+
+    <!-- SLIDE 3: Objectives of the Project -->
+    <div class="slide-card" data-slide="3">
+      <div class="slide-eyebrow">
+        <span>HomeVibes | SWE4004 Review-2</span>
+        <span>Slide 3</span>
+      </div>
+      <h2 class="slide-heading">Objectives of the Project</h2>
+      <div class="slide-content">
+        <div class="grid-2">
+          <div class="info-box">
+            <h4><span class="flow-badge">1</span> Design Decoupled 3-Tier Architecture</h4>
+            <p>Customer web portal, driver mobile app, and admin console operating on one shared managed backend.</p>
+          </div>
+          <div class="info-box">
+            <h4><span class="flow-badge">2</span> Use Cloud Service Models Effectively</h4>
+            <p>Map the system cleanly to IaaS, PaaS, FaaS, and SaaS using Supabase as the managed platform.</p>
+          </div>
+          <div class="info-box">
+            <h4><span class="flow-badge">3</span> Relational Cloud Database Modeling</h4>
+            <p>ACID PostgreSQL 15 schema with constraints, foreign keys, order state history, and driver locations.</p>
+          </div>
+          <div class="info-box">
+            <h4><span class="flow-badge">4</span> Enforce Security at the Data Layer</h4>
+            <p>Supabase Auth with role-based access control and kernel-level Row Level Security (RLS) policies.</p>
+          </div>
+          <div class="info-box">
+            <h4><span class="flow-badge">5</span> Real-Time Order & GPS Tracking</h4>
+            <p>Push updates over persistent WebSockets (WAL Change Data Capture) instead of heavy client polling.</p>
+          </div>
+          <div class="info-box">
+            <h4><span class="flow-badge">6</span> Automate Dispatch Serverless Logic</h4>
+            <p>Server-side database and edge functions for claiming, pickup, delivery, and failure handling.</p>
           </div>
         </div>
       </div>
       <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "Good morning professors. Today we present HomeVibes, a cloud-native platform
-        demonstrating practical IaaS, PaaS, FaaS, and Mobile Edge Computing paradigms."
+        <strong>Speaker Notes:</strong> "We established six core objectives covering architecture, service models, relational modeling, data-layer security, real-time WebSockets, and serverless workflow automation."
       </div>
     </div>
 
-    <!-- SLIDE 2 -->
-    <div class="slide-card" data-slide="2">
-      <div class="slide-eyebrow">Problem Statement & Innovation</div>
-      <h2 class="slide-heading">The Indian DIY Meal Kit Model</h2>
+    <!-- SLIDE 4: Scope of the Project -->
+    <div class="slide-card" data-slide="4">
+      <div class="slide-eyebrow">
+        <span>HomeVibes | SWE4004 Review-2</span>
+        <span>Slide 4</span>
+      </div>
+      <h2 class="slide-heading">Scope of the Project</h2>
       <div class="slide-content">
-        <ul>
-          <li><strong>Traditional Bottleneck:</strong> In cooked food delivery, 60% of total delay is caused by
-            restaurant kitchen cooking and packaging backlogs (45-60 min wait).</li>
-          <li><strong>Direct Vendor Raw Material Hubs:</strong> HomeVibes sources fresh produce, farm paneer,
-            pre-marinated cuts, and whole spice pouches directly from local vendors.</li>
-          <li><strong>Instant Dispatch:</strong> Kits are sealed and dispatched in under 2 minutes—eliminating food
-            spoilage and restaurant preparation wait.</li>
-          <li><strong>Step-by-Step Chef Cooking Scripts:</strong> Customers follow our 4-step chef scripts with flame
-            and timing guides, cooking hot homestyle meals at home in 15 minutes.</li>
-          <li><strong>Currency & Pricing:</strong> Complete ecosystem natively priced in <strong>Indian Rupees
-              (₹)</strong> with standard ₹40 hub delivery fee.</li>
-        </ul>
+        <div class="grid-2">
+          <div class="info-box" style="border-top:4px solid #10B981;">
+            <h4 style="color:#047857;">In Scope</h4>
+            <ul>
+              <li><strong>Customer Web Portal:</strong> Browse meal kits, view recipe scripts, cart, checkout, order tracking.</li>
+              <li><strong>Admin Operations Console:</strong> Dashboard metrics, order queue, driver assignment, catalogue and stock toggling.</li>
+              <li><strong>Flutter Driver App:</strong> Shift toggle, order claim, live GPS broadcasting, delivery status advancement.</li>
+              <li><strong>Supabase Backend:</strong> PostgreSQL database, Auth, Realtime WebSockets, Storage, and serverless functions.</li>
+              <li><strong>Regional Scope:</strong> Central hub with authentic Indian meal kits priced in Indian Rupees (INR ₹).</li>
+            </ul>
+          </div>
+          <div class="info-box" style="border-top:4px solid #6B7280;">
+            <h4 style="color:#374151;">Out of Scope / Future Work</h4>
+            <ul>
+              <li><strong>Live Payment Gateways:</strong> Prototype uses mock online payments and Cash on Delivery.</li>
+              <li><strong>Multi-City Expansion:</strong> Current design evaluates a regional hub topology.</li>
+              <li><strong>ML-Based Demand Forecasting:</strong> Predict ingredient requirements per hub.</li>
+              <li><strong>Cold-Chain IoT Sensors:</strong> Temperature logging on raw poultry/meat delivery bags.</li>
+              <li><strong>Multi-Region Replicas:</strong> Read replicas across Mumbai and Singapore.</li>
+            </ul>
+          </div>
+        </div>
       </div>
       <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "Our architectural innovation is business agility: raw materials are packed
-        immediately at supply hubs, cutting transit latency while delivering fresher food to customers."
+        <strong>Speaker Notes:</strong> "Our in-scope deliverables comprise the complete three-tier software ecosystem. Non-core items like banking gateways and IoT hardware sensors are identified as future enhancements."
       </div>
     </div>
 
-    <!-- SLIDE 3 -->
-    <div class="slide-card" data-slide="3">
-      <div class="slide-eyebrow">System Architecture</div>
-      <h2 class="slide-heading">Three-Tier Decoupled Cloud Topology</h2>
+    <!-- SLIDE 5: Literature Survey -->
+    <div class="slide-card" data-slide="5">
+      <div class="slide-eyebrow">
+        <span>HomeVibes | SWE4004 Review-2</span>
+        <span>Slide 5</span>
+      </div>
+      <h2 class="slide-heading">Literature Survey</h2>
+      <div class="slide-content">
+        <table class="slide-table">
+          <thead>
+            <tr>
+              <th style="width:28%;">Related Work</th>
+              <th style="width:34%;">Focus</th>
+              <th>Gap / Relevance to HomeVibes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>NIST SP 800-145:</strong> The NIST Definition of Cloud Computing (Mell & Grance, 2011)</td>
+              <td>Defines essential cloud characteristics and the IaaS, PaaS, and SaaS service models.</td>
+              <td>Used as the theoretical basis for mapping HomeVibes components to service and deployment models.</td>
+            </tr>
+            <tr>
+              <td><strong>Supabase Platform:</strong> Auth, Row Level Security and Realtime Engine</td>
+              <td>Open-source PostgreSQL backend with database-level authorization and CDC streaming.</td>
+              <td>Provides the platform; HomeVibes applies it to a multi-role food delivery workflow with live tracking.</td>
+            </tr>
+            <tr>
+              <td><strong>Firebase Documentation:</strong> Firestore and Cloud Messaging</td>
+              <td>NoSQL BaaS with managed push notifications.</td>
+              <td>NoSQL is weaker for relational order data and financial constraints, so only FCM is adopted for driver notifications.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="speaker-notes-drawer">
+        <strong>Speaker Notes:</strong> "Our literature survey analyzed standard NIST definitions, PostgreSQL security with Supabase, and Firebase services. We specifically identified that relational integrity is essential for order and inventory transactions."
+      </div>
+    </div>
+
+    <!-- SLIDE 6: Proposed Solution -->
+    <div class="slide-card" data-slide="6">
+      <div class="slide-eyebrow">
+        <span>HomeVibes | SWE4004 Review-2</span>
+        <span>Slide 6</span>
+      </div>
+      <h2 class="slide-heading">Proposed Solution</h2>
+      <div class="slide-content">
+        <p style="font-size:1.05rem; color:var(--muted); margin-bottom:16px;">
+          HomeVibes replaces cooked-food delivery with sealed Indian meal kits that are packed in minutes and cooked by the customer using step-by-step scripts.
+        </p>
+
+        <!-- Pipeline stages -->
+        <div style="display:flex; justify-content:space-between; gap:10px; margin-bottom:20px;">
+          <div class="info-box" style="flex:1; text-align:center; padding:10px;">
+            <div style="font-size:1.2rem;">🛒</div>
+            <strong style="font-size:0.8rem; display:block;">1. Browse & Order</strong>
+          </div>
+          <div class="info-box" style="flex:1; text-align:center; padding:10px;">
+            <div style="font-size:1.2rem;">📦</div>
+            <strong style="font-size:0.8rem; display:block;">2. Hub Packs Kit</strong>
+          </div>
+          <div class="info-box" style="flex:1; text-align:center; padding:10px;">
+            <div style="font-size:1.2rem;">🛵</div>
+            <strong style="font-size:0.8rem; display:block;">3. Driver Picks Up</strong>
+          </div>
+          <div class="info-box" style="flex:1; text-align:center; padding:10px;">
+            <div style="font-size:1.2rem;">📍</div>
+            <strong style="font-size:0.8rem; display:block;">4. Live GPS Delivery</strong>
+          </div>
+          <div class="info-box" style="flex:1; text-align:center; padding:10px;">
+            <div style="font-size:1.2rem;">🍳</div>
+            <strong style="font-size:0.8rem; display:block;">5. Cook in 10–20 min</strong>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="info-box">
+            <h4>⚡ Faster Dispatch</h4>
+            <p>No kitchen wait: sealed kits are ready for pickup as soon as they are packed (< 2 minutes).</p>
+          </div>
+          <div class="info-box">
+            <h4>🔐 Secure & Real-Time</h4>
+            <p>Row Level Security protects data while WebSockets stream order status and driver location.</p>
+          </div>
+          <div class="info-box">
+            <h4>☁️ Serverless & Managed</h4>
+            <p>Business logic runs in database and edge functions, eliminating server provisioning costs.</p>
+          </div>
+        </div>
+      </div>
+      <div class="speaker-notes-drawer">
+        <strong>Speaker Notes:</strong> "Here is our 5-step fulfillment pipeline. Pre-portioned raw ingredient kits are packed in minutes, cutting out cooking wait time completely while delivering fresher, hotter food."
+      </div>
+    </div>
+
+    <!-- SLIDE 7: Technology Stack -->
+    <div class="slide-card" data-slide="7">
+      <div class="slide-eyebrow">
+        <span>HomeVibes | SWE4004 Review-2</span>
+        <span>Slide 7</span>
+      </div>
+      <h2 class="slide-heading">Technology Stack & Cloud Platform</h2>
+      <div class="slide-content">
+        <table class="slide-table">
+          <thead>
+            <tr><th>Layer</th><th>Technology Used</th><th>Configuration & Role</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Cloud Platform</strong></td><td>Supabase (AWS Mumbai)</td><td>Managed PaaS backend with automated failover and scaling</td></tr>
+            <tr><td><strong>Database</strong></td><td>PostgreSQL 15</td><td>ACID relational engine, 3NF schema, check constraints, JSONB</td></tr>
+            <tr><td><strong>Authentication</strong></td><td>Supabase Auth</td><td>JWT token issuance, role claims (customer, driver, admin)</td></tr>
+            <tr><td><strong>Realtime</strong></td><td>Supabase Realtime</td><td>PostgreSQL WAL Change Data Capture (CDC) over WebSockets</td></tr>
+            <tr><td><strong>Serverless</strong></td><td>Deno TypeScript Edge & DB Functions</td><td>Security-definer functions: claim_order, pickup_order, deliver</td></tr>
+            <tr><td><strong>Web Applications</strong></td><td>HTML5, CSS3, ES6+ JavaScript</td><td>Customer Web Portal and Kitchen Admin Console</td></tr>
+            <tr><td><strong>Driver Mobile Edge</strong></td><td>Flutter 3.x & Dart</td><td>Cross-platform Android companion with Geolocator GPS tracking</td></tr>
+            <tr><td><strong>Maps & Geolocation</strong></td><td>Leaflet.js + OpenStreetMap</td><td>Interactive map rendering with vector marker interpolation</td></tr>
+            <tr><td><strong>Security</strong></td><td>Row Level Security & RBAC</td><td>Kernel-level database authorization policies</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="speaker-notes-drawer">
+        <strong>Speaker Notes:</strong> "This table summarizes our full technology stack across all tiers, showing how open-source and managed cloud tools eliminate infrastructure overhead."
+      </div>
+    </div>
+
+    <!-- SLIDE 8: System Architecture -->
+    <div class="slide-card" data-slide="8">
+      <div class="slide-eyebrow">
+        <span>HomeVibes | SWE4004 Review-2</span>
+        <span>Slide 8</span>
+      </div>
+      <h2 class="slide-heading">System Architecture</h2>
+      <div class="slide-content">
+        <p style="margin-bottom:12px; color:var(--muted);">Three decoupled clients talk to one managed Supabase backend over HTTPS and WebSockets.</p>
+        <div class="code-box">
+┌──────────────────────┐   ┌──────────────────────┐   ┌──────────────────────┐
+│  Customer Web App    │   │  Driver Mobile App   │   │  Admin Web Console   │
+│  (HTML5 / CSS / JS)  │   │   (Flutter Android)  │   │ (Dashboard & Dispatch│
+└──────────┬───────────┘   └──────────┬───────────┘   └──────────┬───────────┘
+           │                          │                          │
+           │ HTTPS / WSS              │ GPS Coordinates / WSS    │ HTTPS / WSS
+           ▼                          ▼                          ▼
+┌────────────────────────────────────────────────────────────────────────────┐
+│                    SUPABASE CLOUD BACKEND (PaaS)                           │
+│  • PostgreSQL 15 Engine                • Row Level Security (RLS)          │
+│  • Auth (JWT & Role Claims)            • Realtime (WAL Change Data Capture)│
+│  • Edge / DB Security Functions        • Storage Buckets (Images & Avatars)│
+└─────────────────────────────────────┬──────────────────────────────────────┘
+                                      │
+                                      ▼
+                      External Cloud Services:
+         • Firebase Cloud Messaging (FCM)   • OpenStreetMap / Leaflet Tiles
+        </div>
+        <p style="font-size:0.85rem; color:var(--muted); margin-top:10px;">
+          <strong>Request Flow:</strong> Client &rarr; Supabase Auth (JWT) &rarr; RLS-protected PostgreSQL &rarr; Realtime WAL broadcast &rarr; Subscribed clients.
+        </p>
+      </div>
+      <div class="speaker-notes-drawer">
+        <strong>Speaker Notes:</strong> "Our architecture is fully decoupled. All three client interfaces communicate with the managed Supabase PostgreSQL backend, protected by JWT authentication and Row Level Security."
+      </div>
+    </div>
+
+    <!-- SLIDE 9: List of Modules -->
+    <div class="slide-card" data-slide="9">
+      <div class="slide-eyebrow">
+        <span>HomeVibes | SWE4004 Review-2</span>
+        <span>Slide 9</span>
+      </div>
+      <h2 class="slide-heading">List of Modules & Brief Description</h2>
+      <div class="slide-content">
+        <div class="grid-2">
+          <div class="info-box">
+            <h4><span class="flow-badge">1</span> Customer Web Module</h4>
+            <p>Browse meal kits, view sealed raw ingredient manifests, inspect 4-step chef scripts, cart, and checkout in ₹.</p>
+          </div>
+          <div class="info-box">
+            <h4><span class="flow-badge">2</span> Live Tracking Module</h4>
+            <p>Six-stage order progress timeline and real-time driver vehicle marker on an interactive Leaflet map.</p>
+          </div>
+          <div class="info-box">
+            <h4><span class="flow-badge">3</span> Admin Console Module</h4>
+            <p>Live revenue metrics in ₹, active order queue, order status advancement, and fleet driver assignment.</p>
+          </div>
+          <div class="info-box">
+            <h4><span class="flow-badge">4</span> Catalogue & Inventory Module</h4>
+            <p>Manage meal kit names, prices, cook times, spice levels, and instant availability switches.</p>
+          </div>
+          <div class="info-box">
+            <h4><span class="flow-badge">5</span> Driver App Module</h4>
+            <p>Shift online/offline toggle, claim order, arrive at hub, pick up, deliver, and stream GPS fixes.</p>
+          </div>
+          <div class="info-box">
+            <h4><span class="flow-badge">6</span> Auth & Security Module</h4>
+            <p>Multi-role authorization (`customer`, `driver`, `admin`) enforced by database kernel Row Level Security.</p>
+          </div>
+        </div>
+        <p style="font-size:0.82rem; color:var(--muted); margin-top:10px;">
+          <strong>Backed by Security-Definer DB Functions:</strong> <code>claim_order</code>, <code>pickup_order</code>, <code>start_delivery</code>, <code>arrive_at_customer</code>, <code>complete_delivery</code>, <code>fail_delivery</code>.
+        </p>
+      </div>
+      <div class="speaker-notes-drawer">
+        <strong>Speaker Notes:</strong> "Here are our six core functional modules. Notice that critical state changes are executed by security-definer database functions to ensure transactional consistency."
+      </div>
+    </div>
+
+    <!-- SLIDE 10: Implementation - Database & Serverless Layer -->
+    <div class="slide-card" data-slide="10">
+      <div class="slide-eyebrow">
+        <span>HomeVibes | SWE4004 Review-2</span>
+        <span>Slide 10</span>
+      </div>
+      <h2 class="slide-heading">Implementation: Database & Serverless Layer</h2>
+      <div class="slide-content">
+        <div class="grid-2">
+          <div class="info-box">
+            <h4>🗄️ Relational Schema Visualizer</h4>
+            <p style="margin-bottom:8px;">10 tables in Third Normal Form deployed on Supabase project <code>home-vibes</code> (main):</p>
+            <div class="code-box" style="margin-top:0; font-size:0.75rem;">
+orders ──────< order_items (price-locked)
+  │    ──────< order_status_history
+  │    ──────< notifications
+  │
+drivers ─────< driver_locations (GPS)
+            </div>
+            <p style="margin-top:8px; font-size:0.8rem; color:var(--muted);">
+              Each order stores pickup and delivery coordinates, fee calculations, and an immutable timestamp per status change.
+            </p>
+          </div>
+
+          <div class="info-box">
+            <h4>⚡ Database & Security-Definer Functions</h4>
+            <p style="margin-bottom:8px;">Serverless functions running inside PostgreSQL with elevated security definer rights:</p>
+            <ul style="font-size:0.82rem; margin-left:16px;">
+              <li><code>arrive_at_kitchen(p_order_id)</code></li>
+              <li><code>claim_order(p_order_id)</code></li>
+              <li><code>pickup_order(p_order_id)</code></li>
+              <li><code>start_delivery(p_order_id)</code></li>
+              <li><code>complete_delivery(p_order_id)</code></li>
+              <li><code>driver_toggle_online(p_is_online)</code></li>
+              <li><code>driver_update_location(p_lat, p_lng)</code></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="speaker-notes-drawer">
+        <strong>Speaker Notes:</strong> "This slide highlights our database implementation on Supabase. Relational tables store orders, order items, and GPS history, while security-definer functions enforce workflow execution."
+      </div>
+    </div>
+
+    <!-- SLIDE 11: Implementation - Customer Web Portal -->
+    <div class="slide-card" data-slide="11">
+      <div class="slide-eyebrow">
+        <span>HomeVibes | SWE4004 Review-2</span>
+        <span>Slide 11</span>
+      </div>
+      <h2 class="slide-heading">Implementation: Customer Web Portal</h2>
+      <div class="slide-content">
+        <div class="grid-2">
+          <div class="ui-mock-card">
+            <div style="font-size:0.8rem; font-weight:700; color:var(--accent); margin-bottom:4px;">FRESH INDIAN DIY MEAL KITS</div>
+            <h4 style="font-size:1.1rem; margin-bottom:6px;">Cooked by You in 15 Mins.</h4>
+            <p style="font-size:0.82rem; color:var(--muted); margin-bottom:12px;">Pre-portioned raw ingredients and chef cooking scripts delivered from local vendors.</p>
+            <div style="display:flex; gap:8px;">
+              <span class="flow-badge">Biryani Kit ₹349</span>
+              <span class="flow-badge">Paneer Butter Masala ₹249</span>
+            </div>
+          </div>
+          <div class="info-box">
+            <h4>✨ Key Features Implemented:</h4>
+            <ul>
+              <li><strong>Dietary & Spice Badges:</strong> Vegetarian / Non-Vegetarian tags with Mild, Medium, High spice indicators.</li>
+              <li><strong>Cook Time & Servings:</strong> Clear prep guides (e.g. 20 min cook, 2 servings).</li>
+              <li><strong>Interactive Recipe Modal:</strong> View raw ingredient manifests and 4-step chef scripts before adding to cart.</li>
+              <li><strong>Slide-Over Cart:</strong> Live subtotal in INR (₹) plus flat ₹40 hub delivery fee.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="speaker-notes-drawer">
+        <strong>Speaker Notes:</strong> "The Customer Web Portal features responsive meal kit cards, clear diet and spice tags, and instant recipe inspection modals allowing users to view ingredients before ordering."
+      </div>
+    </div>
+
+    <!-- SLIDE 12: Implementation - Live Delivery Tracking -->
+    <div class="slide-card" data-slide="12">
+      <div class="slide-eyebrow">
+        <span>HomeVibes | SWE4004 Review-2</span>
+        <span>Slide 12</span>
+      </div>
+      <h2 class="slide-heading">Implementation: Live Delivery Tracking</h2>
+      <div class="slide-content">
+        <div class="grid-2">
+          <div class="ui-mock-card">
+            <h4 style="font-size:1rem; margin-bottom:8px;">Order #HV-228584 &bull; Live Telemetry</h4>
+            <!-- Stepper -->
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700; margin-bottom:12px; border-bottom:1px solid #E5E7EB; padding-bottom:8px;">
+              <span style="color:var(--accent);">1. Placed</span>
+              <span>2. Confirmed</span>
+              <span>3. Packaging</span>
+              <span>4. Picked Up</span>
+              <span>5. En Route</span>
+              <span>6. Delivered</span>
+            </div>
+            <div style="background:#E5E7EB; height:120px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:0.8rem; color:#4B5563;">
+              [Interactive Leaflet Map: Hub &rarr; Driver Marker &rarr; Customer Destination]
+            </div>
+            <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <strong style="font-size:0.85rem;">Ravi Kumar</strong>
+                <p style="font-size:0.75rem; color:var(--muted);">Bajaj Chetak Electric &bull; KA-05-EV-4821</p>
+              </div>
+              <span class="btn" style="font-size:0.75rem; padding:4px 8px;">Simulate GPS</span>
+            </div>
+          </div>
+
+          <div class="info-box">
+            <h4>📡 Telemetry Highlights:</h4>
+            <ul>
+              <li><strong>Six-Stage Timeline:</strong> Placed &rarr; Confirmed &rarr; Packaging &rarr; Picked Up &rarr; Out for Delivery &rarr; Delivered.</li>
+              <li><strong>Zero-Polling Realtime:</strong> Driver GPS coordinates pushed through Supabase Realtime WebSockets in &lt;65ms.</li>
+              <li><strong>Live Fleet Marker:</strong> Smooth vehicle icon interpolation on OpenStreetMap tiles.</li>
+              <li><strong>Simulate GPS Engine:</strong> Built-in route simulator for live evaluator demonstrations.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="speaker-notes-drawer">
+        <strong>Speaker Notes:</strong> "Our live tracking module features a six-stage timeline and real-time Leaflet map. Location fixes are pushed via Supabase WebSockets, avoiding client polling overhead."
+      </div>
+    </div>
+
+    <!-- SLIDE 13: Implementation - Admin Operations Console -->
+    <div class="slide-card" data-slide="13">
+      <div class="slide-eyebrow">
+        <span>HomeVibes | SWE4004 Review-2</span>
+        <span>Slide 13</span>
+      </div>
+      <h2 class="slide-heading">Implementation: Admin Operations Console</h2>
       <div class="slide-content">
         <div class="grid-2">
           <div>
-            <div class="info-box" style="margin-bottom: 12px;">
-              <h4>1. Customer Web Application (Port 3000)</h4>
-              <p>Explore meal kits, view sealed raw ingredient manifests, read cooking scripts, checkout in ₹, and track
-                orders on live maps.</p>
-            </div>
-            <div class="info-box" style="margin-bottom: 12px;">
-              <h4>2. Driver Mobile Edge Client (Flutter Android)</h4>
-              <p>Streams real-time throttled GPS coordinates over WebSockets, manages online shift availability, and
-                updates delivery states.</p>
+            <div class="grid-2" style="margin-top:0; margin-bottom:12px;">
+              <div class="info-box" style="text-align:center;">
+                <div style="font-size:1.4rem; font-weight:800; color:#111827;">₹18,450</div>
+                <p style="font-size:0.75rem;">Total Revenue</p>
+              </div>
+              <div class="info-box" style="text-align:center;">
+                <div style="font-size:1.4rem; font-weight:800; color:#111827;">4</div>
+                <p style="font-size:0.75rem;">Active Orders</p>
+              </div>
+              <div class="info-box" style="text-align:center;">
+                <div style="font-size:1.4rem; font-weight:800; color:#111827;">2</div>
+                <p style="font-size:0.75rem;">Online Drivers</p>
+              </div>
+              <div class="info-box" style="text-align:center;">
+                <div style="font-size:1.4rem; font-weight:800; color:#111827;">24</div>
+                <p style="font-size:0.75rem;">Registered Customers</p>
+              </div>
             </div>
             <div class="info-box">
-              <h4>3. Kitchen Hub Admin Console (Port 3001)</h4>
-              <p>Live order dispatches queue, driver fleet management, meal kit availability toggles, and revenue
-                tracking in ₹.</p>
+              <h4>Live Dispatch Queue</h4>
+              <p style="font-size:0.8rem;">#HV-683474 (Kavya Patel) &bull; #HV-847291 (Ananya Sharma) &bull; #HV-102948 (Siddharth Rao)</p>
             </div>
           </div>
+
           <div class="info-box">
-            <h4>4. Managed Cloud Backend (Supabase PaaS)</h4>
-            <p>PostgreSQL 15 (10 relational tables), Row-Level Security, Change Data Capture over WebSockets, and
-              Serverless Edge Functions.</p>
-            <div class="code-box">Clients (Web/Mobile)
-              │
-              [HTTPS/WSS]
-              ▼
-              Supabase PaaS (PostgreSQL 15)
-              ├── 10 Relational Tables (3NF)
-              ├── Row Level Security (RLS)
-              ├── Realtime WAL Change Stream
-              └── Deno Serverless Edge Functions</div>
+            <h4>🛠️ Operations Capabilities:</h4>
+            <ul>
+              <li><strong>Live KPI Dashboard:</strong> Real-time sum of fulfilled orders, active orders in packaging/transit, and available drivers.</li>
+              <li><strong>Order Dispatch Actions:</strong> Assign available online drivers and advance status milestones.</li>
+              <li><strong>Simulate Incoming Orders:</strong> Generates live order events for real-time testing.</li>
+              <li><strong>Multi-Tenant Isolation:</strong> Admin console queries protected by <code>public.is_admin()</code> security definer function.</li>
+            </ul>
           </div>
         </div>
       </div>
       <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "Our three client tiers are completely decoupled and interface with the managed
-        PostgreSQL backend over secure HTTPS REST and WebSocket connections."
+        <strong>Speaker Notes:</strong> "The Admin Console displays high-level operational KPIs in Indian Rupees, active dispatches, and an interactive queue allowing hub managers to assign drivers with one click."
       </div>
     </div>
 
-    <!-- SLIDE 4 -->
-    <div class="slide-card" data-slide="4">
-      <div class="slide-eyebrow">Cloud Service Models</div>
-      <h2 class="slide-heading">NIST Cloud Computing Service Model Mapping</h2>
+    <!-- SLIDE 14: Implementation - Meal Kit Catalogue & Inventory -->
+    <div class="slide-card" data-slide="14">
+      <div class="slide-eyebrow">
+        <span>HomeVibes | SWE4004 Review-2</span>
+        <span>Slide 14</span>
+      </div>
+      <h2 class="slide-heading">Implementation: Catalogue & Inventory Management</h2>
+      <div class="slide-content">
+        <table class="slide-table" style="font-size:0.82rem;">
+          <thead>
+            <tr>
+              <th>Meal Kit Name</th>
+              <th>Category</th>
+              <th>Kit Price</th>
+              <th>Cook Time</th>
+              <th>Spice Level</th>
+              <th>Availability</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Hyderabadi Dum Chicken Biryani Kit</strong></td>
+              <td>Meal Kit</td>
+              <td>₹349</td>
+              <td>20 mins</td>
+              <td>Medium</td>
+              <td><span style="color:#047857; font-weight:700;">☑ Available</span></td>
+            </tr>
+            <tr>
+              <td><strong>Paneer Butter Masala DIY Kit</strong></td>
+              <td>Meal Kit</td>
+              <td>₹249</td>
+              <td>12 mins</td>
+              <td>Mild</td>
+              <td><span style="color:#047857; font-weight:700;">☑ Available</span></td>
+            </tr>
+            <tr>
+              <td><strong>Chettinad Pepper Chicken Kit</strong></td>
+              <td>Meal Kit</td>
+              <td>₹329</td>
+              <td>15 mins</td>
+              <td>High</td>
+              <td><span style="color:#047857; font-weight:700;">☑ Available</span></td>
+            </tr>
+            <tr>
+              <td><strong>Dal Makhani Slow-Simmer Kit</strong></td>
+              <td>Meal Kit</td>
+              <td>₹199</td>
+              <td>10 mins</td>
+              <td>Mild</td>
+              <td><span style="color:#047857; font-weight:700;">☑ Available</span></td>
+            </tr>
+            <tr>
+              <td><strong>Amritsari Chole & Stuffed Kulcha Kit</strong></td>
+              <td>Meal Kit</td>
+              <td>₹219</td>
+              <td>10 mins</td>
+              <td>Medium</td>
+              <td><span style="color:#047857; font-weight:700;">☑ Available</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size:0.85rem; color:var(--muted); margin-top:8px;">
+          <strong>Instant Availability Switch:</strong> Toggling the availability checkbox executes an atomic <code>UPDATE</code> on <code>food_items.is_available</code>, instantly hiding or showing the item across all customer web sessions via Realtime.
+        </p>
+      </div>
+      <div class="speaker-notes-drawer">
+        <strong>Speaker Notes:</strong> "Hub managers can adjust prices and toggle inventory availability in real time. Toggling an item immediately propagates to all connected customer browsers through Supabase Realtime."
+      </div>
+    </div>
+
+    <!-- SLIDE 15: Conclusion -->
+    <div class="slide-card" data-slide="15">
+      <div class="slide-eyebrow">
+        <span>HomeVibes | SWE4004 Review-2</span>
+        <span>Slide 15</span>
+      </div>
+      <h2 class="slide-heading">Conclusion & Project Wrap-Up</h2>
       <div class="slide-content">
         <div class="grid-2">
-          <div class="info-box">
-            <h4>IaaS (Infrastructure as a Service)</h4>
-            <p>Underlying Amazon Web Services (AWS) EC2 compute instances, VPC networking, EBS SSD storage, and
-              hypervisor management.</p>
-          </div>
-          <div class="info-box">
-            <h4>PaaS (Platform as a Service)</h4>
-            <p>Supabase managed PostgreSQL: automated zero-downtime replication, connection pooling via PgBouncer,
-              automated WAL backups.</p>
-          </div>
-          <div class="info-box">
-            <h4>FaaS (Function as a Service / Serverless)</h4>
-            <p>Deno/TypeScript Edge Functions execute on-demand without persistent servers: price verification, order
-              generation, driver matching.</p>
-          </div>
-          <div class="info-box">
-            <h4>SaaS (Software as a Service)</h4>
-            <p>Customer Ordering Portal and Hub Operations Management Console delivered directly to end users via
-              standard web browsers.</p>
-          </div>
-        </div>
-      </div>
-      <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "We mapped our platform across IaaS, PaaS, FaaS, and SaaS to demonstrate
-        practical enterprise cloud deployment models."
-      </div>
-    </div>
-
-    <!-- SLIDE 5 -->
-    <div class="slide-card" data-slide="5">
-      <div class="slide-eyebrow">Database Engineering</div>
-      <h2 class="slide-heading">Relational Schema & JSONB Hybrid Design</h2>
-      <div class="slide-content">
-        <ul>
-          <li><strong>Engine:</strong> PostgreSQL 15, ACID-compliant, Third Normal Form (3NF).</li>
-          <li><strong>10 Relational Tables:</strong> <code>profiles</code>, <code>categories</code>,
-            <code>food_items</code>, <code>addresses</code>, <code>drivers</code>, <code>orders</code>,
-            <code>order_items</code>, <code>driver_locations</code>, <code>notifications</code>, <code>reviews</code>.
-          </li>
-          <li><strong>Hybrid JSONB Implementation:</strong>
+          <div class="info-box" style="border-left:4px solid #10B981;">
+            <h4 style="color:#047857;">Achieved So Far</h4>
             <ul>
-              <li><code>raw_ingredients</code>: Structured JSONB array containing pre-portioned ingredient manifests.
-              </li>
-              <li><code>cooking_script</code>: Structured JSONB array containing step-by-step chef cooking instructions.
-              </li>
-            </ul>
-          </li>
-          <li><strong>Integrity:</strong> Purchase-time price locking on <code>order_items</code> ensures historical
-            accounting accuracy regardless of future kit price adjustments.</li>
-        </ul>
-      </div>
-      <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "Our schema combines strict relational constraints for orders with flexible
-        PostgreSQL JSONB columns for cooking scripts and ingredient manifests."
-      </div>
-    </div>
-
-    <!-- SLIDE 6 -->
-    <div class="slide-card" data-slide="6">
-      <div class="slide-eyebrow">Cloud Security</div>
-      <h2 class="slide-heading">Kernel-Level Row Level Security (RLS)</h2>
-      <div class="slide-content">
-        <ul>
-          <li><strong>Database Engine Defense:</strong> Authorization policies are executed inside the PostgreSQL
-            database engine, not just in web application middleware.</li>
-          <li><strong>Customer Isolation:</strong> <code>SELECT / INSERT</code> on <code>orders</code> and
-            <code>addresses</code> restricted strictly to <code>auth.uid() = user_id</code>.</li>
-          <li><strong>Driver Isolation:</strong> Drivers can only access orders assigned to their fleet ID
-            (<code>auth.uid() = driver_id</code>).</li>
-          <li><strong>Admin Access:</strong> System-wide operations verified via <code>is_admin()</code> SECURITY
-            DEFINER functions.</li>
-          <li><strong>Public Access:</strong> Unauthenticated users can only view available meal kits and category
-            information.</li>
-        </ul>
-      </div>
-      <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "RLS guarantees that even if a client-side API call is tampered with, PostgreSQL
-        rejects unauthorized row queries at the database kernel level."
-      </div>
-    </div>
-
-    <!-- SLIDE 7 -->
-    <div class="slide-card" data-slide="7">
-      <div class="slide-eyebrow">Real-Time Telemetry</div>
-      <h2 class="slide-heading">Event-Driven WebSocket Telemetry Pipeline</h2>
-      <div class="slide-content">
-        <div class="grid-2">
-          <div class="info-box">
-            <h4>Traditional Polling Overhead</h4>
-            <p>Client polls every 3s &rarr; 1,200 requests/hour/user &rarr; Server connection thrashing, high battery
-              drain, and redundant payload transfers.</p>
-          </div>
-          <div class="info-box">
-            <h4>Supabase Change Data Capture</h4>
-            <p>Driver updates GPS fix &rarr; PostgreSQL WAL log emits event &rarr; WebSocket pushes coordinates to
-              subscribed customers in <strong>~65ms</strong>.</p>
-          </div>
-        </div>
-        <div style="margin-top: 16px;">
-          <p><strong>Throttled Location Streaming:</strong> The Flutter driver client throttles GPS coordinates to 5–10
-            second intervals during transit, balancing real-time map accuracy with mobile battery conservation.</p>
-        </div>
-      </div>
-      <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "Our real-time pipeline uses PostgreSQL Change Data Capture over persistent
-        WebSockets, cutting bandwidth by over 90% compared to legacy HTTP polling."
-      </div>
-    </div>
-
-    <!-- SLIDE 8 -->
-    <div class="slide-card" data-slide="8">
-      <div class="slide-eyebrow">Serverless Computing</div>
-      <h2 class="slide-heading">Deno Serverless Edge Functions (FaaS)</h2>
-      <div class="slide-content">
-        <ul>
-          <li><strong>Execution Model:</strong> Event-driven, auto-scaling serverless functions deployed to
-            geographically distributed edge nodes.</li>
-          <li><strong>Key Functions Implemented:</strong>
-            <ul>
-              <li><code>create-order</code>: Recalculates cart subtotals server-side to prevent client price tampering.
-              </li>
-              <li><code>update-order-status</code>: Validates allowed state transitions (Placed &rarr; Confirmed &rarr;
-                Packaging &rarr; En Route &rarr; Delivered).</li>
-              <li><code>assign-driver</code>: Dispatches available online drivers based on proximity.</li>
-              <li><code>send-notification</code>: Emits cross-platform dispatch alerts.</li>
-            </ul>
-          </li>
-          <li><strong>Advantages:</strong> Sub-50ms cold starts, zero idle compute charges, and strict sandboxed
-            execution.</li>
-        </ul>
-      </div>
-      <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "Serverless Edge Functions handle trusted business operations. They eliminate
-        client privilege escalation risks and scale automatically from 0 to thousands of requests."
-      </div>
-    </div>
-
-    <!-- SLIDE 9 -->
-    <div class="slide-card" data-slide="9">
-      <div class="slide-eyebrow">Mobile Edge Computing</div>
-      <h2 class="slide-heading">Flutter Cross-Platform Driver Application</h2>
-      <div class="slide-content">
-        <div class="grid-2">
-          <div class="info-box">
-            <h4>Client Capabilities</h4>
-            <ul>
-              <li>Online/Offline shift availability switch.</li>
-              <li>Active delivery management & one-tap state advancement.</li>
-              <li>Earnings tracking in ₹ (e.g. ₹50 delivery commission).</li>
-              <li>Geolocator GPS tracking pipeline.</li>
+              <li>Working customer portal, admin console, and live tracking prototype on Supabase cloud.</li>
+              <li>Role-based access control and Row Level Security enforced at the database kernel.</li>
+              <li>Change Data Capture over WebSockets delivering sub-65ms telemetry updates.</li>
             </ul>
           </div>
-          <div class="info-box">
-            <h4>Architecture & Quality</h4>
+          <div class="info-box" style="border-left:4px solid var(--accent);">
+            <h4 style="color:var(--accent);">Cloud Concepts Demonstrated</h4>
             <ul>
-              <li><strong>State Management:</strong> Provider pattern.</li>
-              <li><strong>Resilience:</strong> Offline simulation fallback if cellular reception drops in transit
-                corridors.</li>
-              <li><strong>Automated Testing:</strong> 100% test pass rate on Flutter widget tests.</li>
+              <li>Clean mapping across IaaS, PaaS, FaaS, and SaaS service models.</li>
+              <li>Serverless transactional functions with zero idle compute cost.</li>
+              <li>Relational 3NF data integrity combined with JSONB recipe documents.</li>
             </ul>
           </div>
         </div>
-      </div>
-      <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "The driver application runs natively on Android, capturing GPS coordinates and
-        synchronizing order fulfillment states directly with the cloud database."
-      </div>
-    </div>
 
-    <!-- SLIDE 10 -->
-    <div class="slide-card" data-slide="10">
-      <div class="slide-eyebrow">Cloud Economics</div>
-      <h2 class="slide-heading">Scalability, Caching & Cost Optimization</h2>
-      <div class="slide-content">
-        <ul>
-          <li><strong>Connection Pooling:</strong> PgBouncer multiplexes thousands of client connections onto a compact
-            PostgreSQL connection pool, preventing connection exhaustion.</li>
-          <li><strong>Asset Optimization:</strong> Modern responsive WebP photography and lightweight SVG icons ensure
-            sub-1.2s First Contentful Paint (FCP).</li>
-          <li><strong>Zero-Cost Architecture:</strong>
-            <ul>
-              <li>Supabase Free Tier covers 50,000 monthly active users and 500MB storage.</li>
-              <li>Leaflet + OpenStreetMap engine eliminates expensive third-party map billing.</li>
-              <li>Total operational cost: <strong>$0 / month</strong> during development and academic evaluation.</li>
-            </ul>
-          </li>
-        </ul>
-      </div>
-      <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "HomeVibes demonstrates intelligent cloud economics: connection pooling prevents
-        database crash under load, while open-source mapping eliminates cloud billing overhead."
-      </div>
-    </div>
-
-    <!-- SLIDE 11 -->
-    <div class="slide-card" data-slide="11">
-      <div class="slide-eyebrow">Project Demonstration</div>
-      <h2 class="slide-heading">Live Demonstration Highlights</h2>
-      <div class="slide-content">
-        <ul>
-          <li><strong>Indian Meal Kits Catalog:</strong> 8 authentic kits with prices in ₹ (Biryani ₹349, Paneer Butter
-            Masala ₹249, Chettinad Chicken ₹329, Naan ₹149, Gulab Jamun ₹179).</li>
-          <li><strong>Recipe & Script Modal:</strong> Displays sealed raw material manifests and 4-step chef
-            instructions.</li>
-          <li><strong>Cart & Checkout:</strong> Real-time subtotal in ₹, ₹40 hub delivery fee, and UPI/COD payment
-            options.</li>
-          <li><strong>Live Telemetry:</strong> Leaflet map displays moving vehicle markers and live order progress.</li>
-          <li><strong>Admin Dashboard:</strong> Revenue summaries in ₹, active orders tallying, and live order
-            management.</li>
-        </ul>
-      </div>
-      <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "Here we present the live operational product. Notice the clean professional
-        aesthetic, absence of emojis, and authentic Indian recipes with full cooking scripts."
-      </div>
-    </div>
-
-    <!-- SLIDE 12 -->
-    <div class="slide-card" data-slide="12">
-      <div class="slide-eyebrow">Viva Voce Preparation</div>
-      <h2 class="slide-heading">Key Technical Defense Questions</h2>
-      <div class="slide-content">
-        <div class="info-box" style="margin-bottom: 12px;">
-          <h4>Q1: Why choose PaaS over an EC2 monolith VM?</h4>
-          <p><strong>A:</strong> Self-hosting requires manual OS patching, cluster replication, and backup
-            configuration. Supabase PaaS provides automated scaling, high availability, and built-in WebSocket
-            replication out of the box.</p>
-        </div>
-        <div class="info-box" style="margin-bottom: 12px;">
-          <h4>Q2: How does Row Level Security prevent data tampering?</h4>
-          <p><strong>A:</strong> RLS applies authorization rules at the PostgreSQL storage engine level. Even if a user
-            crafts a direct SQL query, rows not owned by that user are completely hidden from the result set.</p>
-        </div>
-        <div class="info-box">
-          <h4>Q3: Why use WebSockets over HTTP polling for GPS tracking?</h4>
-          <p><strong>A:</strong> WebSockets eliminate repetitive TCP/TLS handshake and header overhead (saving ~800
-            bytes per request), reducing mobile battery drain and latency to under 100ms.</p>
-        </div>
-      </div>
-      <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "These three questions address the core architectural decisions of our cloud
-        implementation."
-      </div>
-    </div>
-
-    <!-- SLIDE 13 -->
-    <div class="slide-card" data-slide="13">
-      <div class="slide-eyebrow">Conclusion & Future Work</div>
-      <h2 class="slide-heading">Summary & Next Milestones</h2>
-      <div class="slide-content">
-        <div class="grid-2">
+        <div class="grid-2" style="margin-top:14px;">
           <div class="info-box">
-            <h4>Key Project Achievements</h4>
-            <ul>
-              <li>Fully operational cloud-native food delivery platform.</li>
-              <li>Pioneered fresh Indian DIY meal kit delivery model.</li>
-              <li>Multi-platform integration (Web, Flutter Android, Supabase Cloud).</li>
-              <li>100% test coverage on driver edge application.</li>
-            </ul>
+            <h4>Remaining Work for Final Review</h4>
+            <p style="font-size:0.85rem;">Complete the Flutter driver production build, finalize FCM push handlers, and execute load testing.</p>
           </div>
           <div class="info-box">
-            <h4>Future Research & Roadmap</h4>
-            <ul>
-              <li><strong>Predictive ML:</strong> Demand forecasting for raw material vendor hubs to minimize food
-                waste.</li>
-              <li><strong>IoT Cold Chain:</strong> Bluetooth temperature sensors in delivery bags to monitor raw meat
-                freshness.</li>
-              <li><strong>Multi-Region DB:</strong> Read-replicas across Mumbai and Singapore AWS regions.</li>
-            </ul>
+            <h4>Future Enhancements</h4>
+            <p style="font-size:0.85rem;">Demand forecasting with ML, cold-chain IoT bag sensors, and multi-region read replicas across Mumbai and Singapore.</p>
           </div>
-        </div>
-        <div style="text-align: center; margin-top: 32px; font-weight: 700; font-size: 1.1rem; color: var(--accent);">
-          Thank You! Questions & Discussion.
         </div>
       </div>
       <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "Thank you professors for your time and guidance. We are now open for technical
-        questions and examination."
+        <strong>Speaker Notes:</strong> "In conclusion, HomeVibes demonstrates an operational cloud-native architecture combining PaaS, FaaS, and mobile edge computing. Thank you professors, we are now ready for questions."
+      </div>
+    </div>
+
+    <!-- SLIDE 16: References -->
+    <div class="slide-card" data-slide="16">
+      <div class="slide-eyebrow">
+        <span>HomeVibes | SWE4004 Review-2</span>
+        <span>Slide 16</span>
+      </div>
+      <h2 class="slide-heading">References</h2>
+      <div class="slide-content">
+        <ol style="font-size:0.92rem; line-height:1.7;">
+          <li><strong>P. Mell and T. Grance,</strong> "The NIST Definition of Cloud Computing," <em>NIST Special Publication 800-145</em>, 2011.</li>
+          <li><strong>Supabase Documentation:</strong> Auth, Row Level Security, Realtime and Edge Functions. <code>supabase.com/docs</code></li>
+          <li><strong>PostgreSQL 15 Documentation:</strong> Relational Schema, Constraints and Security Definers. <code>postgresql.org/docs/15</code></li>
+          <li><strong>Firebase Documentation:</strong> Cloud Messaging (FCM). <code>firebase.google.com/docs</code></li>
+          <li><strong>Flutter Documentation:</strong> Cross-Platform Mobile Applications & Geolocator. <code>docs.flutter.dev</code></li>
+          <li><strong>Leaflet Documentation & OpenStreetMap:</strong> Geospatial Mapping & Vector Tiles. <code>leafletjs.com</code>, <code>openstreetmap.org</code></li>
+        </ol>
+        <div style="margin-top:28px; text-align:center; font-weight:800; font-size:1.15rem; color:var(--vit-maroon);">
+          Thank You! &bull; Questions & Discussion
+        </div>
+      </div>
+      <div class="speaker-notes-drawer">
+        <strong>Speaker Notes:</strong> "Here are our key academic and technical references. Thank you professors for your time and guidance."
       </div>
     </div>
 
@@ -655,7 +1021,7 @@
 
   <script>
     let currentSlide = 1;
-    const totalSlides = 13;
+    const totalSlides = 16;
     const slideCards = document.querySelectorAll(".slide-card");
     const slideCounter = document.getElementById("slideCounter");
     const progressFill = document.getElementById("progressFill");
@@ -684,7 +1050,7 @@
       document.querySelectorAll(".speaker-notes-drawer").forEach(el => {
         el.classList.toggle("visible", showNotes);
       });
-      btnToggleNotes.textContent = showNotes ? "Hide Notes (N)" : "Show Notes (N)";
+      btnToggleNotes.textContent = showNotes ? "Hide Notes (N)" : "Notes (N)";
     });
 
     document.addEventListener("keydown", (e) => {

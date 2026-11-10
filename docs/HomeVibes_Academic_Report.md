@@ -9,13 +9,13 @@ by
 
 | Student Name | Registration No. |
 | :--- | :--- |
-| Team Member 1 | 21BCE0001 |
-| Team Member 2 | 21BCE0002 |
-| Team Member 3 | 21BCE0003 |
-| Team Member 4 | 21BCE0004 |
+| Vyshnavi | 24MIC7062 |
+| Meghana | 24MIC7069 |
+| Karthikeya | 24MIS7354 |
 
 Under the Guidance of  
-**Faculty Coordinator / Course Faculty**
+**Dr. M. Jawahar**  
+Associate Professor Grade 2, VIT-AP University
 
 ---
 
