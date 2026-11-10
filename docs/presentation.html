@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -50,7 +51,10 @@
       font-weight: 800;
       font-size: 1.1rem;
     }
-    .brand-title span { color: var(--accent); }
+
+    .brand-title span {
+      color: var(--accent);
+    }
 
     .nav-controls {
       display: flex;
@@ -68,9 +72,20 @@
       cursor: pointer;
       transition: all 0.15s ease;
     }
-    .btn:hover { background: #F0EEE9; }
-    .btn-primary { background: var(--accent); color: #FFF; border-color: var(--accent); }
-    .btn-primary:hover { background: #D44E31; }
+
+    .btn:hover {
+      background: #F0EEE9;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #FFF;
+      border-color: var(--accent);
+    }
+
+    .btn-primary:hover {
+      background: #D44E31;
+    }
 
     .slide-counter {
       font-size: 0.85rem;
@@ -101,7 +116,7 @@
       padding: 48px;
       display: none;
       flex-direction: column;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
       overflow-y: auto;
     }
 
@@ -111,8 +126,15 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .slide-eyebrow {
@@ -209,6 +231,7 @@
       background: var(--border);
       width: 100%;
     }
+
     .progress-bar-fill {
       height: 100%;
       background: var(--accent);
@@ -217,15 +240,18 @@
     }
   </style>
 </head>
+
 <body>
 
   <header class="top-bar">
     <div style="display:flex; align-items:center; gap:16px;">
-      <a href="../index.html" class="btn" style="text-decoration:none;" title="Back to Platform Portal">&larr; Portal</a>
+      <a href="../index.html" class="btn" style="text-decoration:none;" title="Back to Platform Portal">&larr;
+        Portal</a>
       <div class="brand-title">Home<span>Vibes</span> &bull; Cloud Computing Slide Deck</div>
     </div>
     <div class="nav-controls">
-      <a href="../customer-web/index.html" class="btn" style="text-decoration:none;" title="Open Customer App">Customer</a>
+      <a href="../customer-web/index.html" class="btn" style="text-decoration:none;"
+        title="Open Customer App">Customer</a>
       <a href="../admin-web/index.html" class="btn" style="text-decoration:none;" title="Open Admin Console">Admin</a>
       <a href="../driver-web/index.html" class="btn" style="text-decoration:none;" title="Open Driver App">Driver</a>
       <button class="btn" id="btnToggleNotes">Notes (N)</button>
@@ -264,7 +290,8 @@
         </div>
       </div>
       <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "Good morning professors. Today we present HomeVibes, a cloud-native platform demonstrating practical IaaS, PaaS, FaaS, and Mobile Edge Computing paradigms."
+        <strong>Speaker Notes:</strong> "Good morning professors. Today we present HomeVibes, a cloud-native platform
+        demonstrating practical IaaS, PaaS, FaaS, and Mobile Edge Computing paradigms."
       </div>
     </div>
 
@@ -274,15 +301,21 @@
       <h2 class="slide-heading">The Indian DIY Meal Kit Model</h2>
       <div class="slide-content">
         <ul>
-          <li><strong>Traditional Bottleneck:</strong> In cooked food delivery, 60% of total delay is caused by restaurant kitchen cooking and packaging backlogs (45-60 min wait).</li>
-          <li><strong>Direct Vendor Raw Material Hubs:</strong> HomeVibes sources fresh produce, farm paneer, pre-marinated cuts, and whole spice pouches directly from local vendors.</li>
-          <li><strong>Instant Dispatch:</strong> Kits are sealed and dispatched in under 2 minutes—eliminating food spoilage and restaurant preparation wait.</li>
-          <li><strong>Step-by-Step Chef Cooking Scripts:</strong> Customers follow our 4-step chef scripts with flame and timing guides, cooking hot homestyle meals at home in 15 minutes.</li>
-          <li><strong>Currency & Pricing:</strong> Complete ecosystem natively priced in <strong>Indian Rupees (₹)</strong> with standard ₹40 hub delivery fee.</li>
+          <li><strong>Traditional Bottleneck:</strong> In cooked food delivery, 60% of total delay is caused by
+            restaurant kitchen cooking and packaging backlogs (45-60 min wait).</li>
+          <li><strong>Direct Vendor Raw Material Hubs:</strong> HomeVibes sources fresh produce, farm paneer,
+            pre-marinated cuts, and whole spice pouches directly from local vendors.</li>
+          <li><strong>Instant Dispatch:</strong> Kits are sealed and dispatched in under 2 minutes—eliminating food
+            spoilage and restaurant preparation wait.</li>
+          <li><strong>Step-by-Step Chef Cooking Scripts:</strong> Customers follow our 4-step chef scripts with flame
+            and timing guides, cooking hot homestyle meals at home in 15 minutes.</li>
+          <li><strong>Currency & Pricing:</strong> Complete ecosystem natively priced in <strong>Indian Rupees
+              (₹)</strong> with standard ₹40 hub delivery fee.</li>
         </ul>
       </div>
       <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "Our architectural innovation is business agility: raw materials are packed immediately at supply hubs, cutting transit latency while delivering fresher food to customers."
+        <strong>Speaker Notes:</strong> "Our architectural innovation is business agility: raw materials are packed
+        immediately at supply hubs, cutting transit latency while delivering fresher food to customers."
       </div>
     </div>
 
@@ -295,34 +328,39 @@
           <div>
             <div class="info-box" style="margin-bottom: 12px;">
               <h4>1. Customer Web Application (Port 3000)</h4>
-              <p>Explore meal kits, view sealed raw ingredient manifests, read cooking scripts, checkout in ₹, and track orders on live maps.</p>
+              <p>Explore meal kits, view sealed raw ingredient manifests, read cooking scripts, checkout in ₹, and track
+                orders on live maps.</p>
             </div>
             <div class="info-box" style="margin-bottom: 12px;">
               <h4>2. Driver Mobile Edge Client (Flutter Android)</h4>
-              <p>Streams real-time throttled GPS coordinates over WebSockets, manages online shift availability, and updates delivery states.</p>
+              <p>Streams real-time throttled GPS coordinates over WebSockets, manages online shift availability, and
+                updates delivery states.</p>
             </div>
             <div class="info-box">
               <h4>3. Kitchen Hub Admin Console (Port 3001)</h4>
-              <p>Live order dispatches queue, driver fleet management, meal kit availability toggles, and revenue tracking in ₹.</p>
+              <p>Live order dispatches queue, driver fleet management, meal kit availability toggles, and revenue
+                tracking in ₹.</p>
             </div>
           </div>
           <div class="info-box">
             <h4>4. Managed Cloud Backend (Supabase PaaS)</h4>
-            <p>PostgreSQL 15 (10 relational tables), Row-Level Security, Change Data Capture over WebSockets, and Serverless Edge Functions.</p>
+            <p>PostgreSQL 15 (10 relational tables), Row-Level Security, Change Data Capture over WebSockets, and
+              Serverless Edge Functions.</p>
             <div class="code-box">Clients (Web/Mobile)
-       │
-   [HTTPS/WSS]
-       ▼
-Supabase PaaS (PostgreSQL 15)
-  ├── 10 Relational Tables (3NF)
-  ├── Row Level Security (RLS)
-  ├── Realtime WAL Change Stream
-  └── Deno Serverless Edge Functions</div>
+              │
+              [HTTPS/WSS]
+              ▼
+              Supabase PaaS (PostgreSQL 15)
+              ├── 10 Relational Tables (3NF)
+              ├── Row Level Security (RLS)
+              ├── Realtime WAL Change Stream
+              └── Deno Serverless Edge Functions</div>
           </div>
         </div>
       </div>
       <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "Our three client tiers are completely decoupled and interface with the managed PostgreSQL backend over secure HTTPS REST and WebSocket connections."
+        <strong>Speaker Notes:</strong> "Our three client tiers are completely decoupled and interface with the managed
+        PostgreSQL backend over secure HTTPS REST and WebSocket connections."
       </div>
     </div>
 
@@ -334,24 +372,29 @@ Supabase PaaS (PostgreSQL 15)
         <div class="grid-2">
           <div class="info-box">
             <h4>IaaS (Infrastructure as a Service)</h4>
-            <p>Underlying Amazon Web Services (AWS) EC2 compute instances, VPC networking, EBS SSD storage, and hypervisor management.</p>
+            <p>Underlying Amazon Web Services (AWS) EC2 compute instances, VPC networking, EBS SSD storage, and
+              hypervisor management.</p>
           </div>
           <div class="info-box">
             <h4>PaaS (Platform as a Service)</h4>
-            <p>Supabase managed PostgreSQL: automated zero-downtime replication, connection pooling via PgBouncer, automated WAL backups.</p>
+            <p>Supabase managed PostgreSQL: automated zero-downtime replication, connection pooling via PgBouncer,
+              automated WAL backups.</p>
           </div>
           <div class="info-box">
             <h4>FaaS (Function as a Service / Serverless)</h4>
-            <p>Deno/TypeScript Edge Functions execute on-demand without persistent servers: price verification, order generation, driver matching.</p>
+            <p>Deno/TypeScript Edge Functions execute on-demand without persistent servers: price verification, order
+              generation, driver matching.</p>
           </div>
           <div class="info-box">
             <h4>SaaS (Software as a Service)</h4>
-            <p>Customer Ordering Portal and Hub Operations Management Console delivered directly to end users via standard web browsers.</p>
+            <p>Customer Ordering Portal and Hub Operations Management Console delivered directly to end users via
+              standard web browsers.</p>
           </div>
         </div>
       </div>
       <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "We mapped our platform across IaaS, PaaS, FaaS, and SaaS to demonstrate practical enterprise cloud deployment models."
+        <strong>Speaker Notes:</strong> "We mapped our platform across IaaS, PaaS, FaaS, and SaaS to demonstrate
+        practical enterprise cloud deployment models."
       </div>
     </div>
 
@@ -362,18 +405,25 @@ Supabase PaaS (PostgreSQL 15)
       <div class="slide-content">
         <ul>
           <li><strong>Engine:</strong> PostgreSQL 15, ACID-compliant, Third Normal Form (3NF).</li>
-          <li><strong>10 Relational Tables:</strong> <code>profiles</code>, <code>categories</code>, <code>food_items</code>, <code>addresses</code>, <code>drivers</code>, <code>orders</code>, <code>order_items</code>, <code>driver_locations</code>, <code>notifications</code>, <code>reviews</code>.</li>
+          <li><strong>10 Relational Tables:</strong> <code>profiles</code>, <code>categories</code>,
+            <code>food_items</code>, <code>addresses</code>, <code>drivers</code>, <code>orders</code>,
+            <code>order_items</code>, <code>driver_locations</code>, <code>notifications</code>, <code>reviews</code>.
+          </li>
           <li><strong>Hybrid JSONB Implementation:</strong>
             <ul>
-              <li><code>raw_ingredients</code>: Structured JSONB array containing pre-portioned ingredient manifests.</li>
-              <li><code>cooking_script</code>: Structured JSONB array containing step-by-step chef cooking instructions.</li>
+              <li><code>raw_ingredients</code>: Structured JSONB array containing pre-portioned ingredient manifests.
+              </li>
+              <li><code>cooking_script</code>: Structured JSONB array containing step-by-step chef cooking instructions.
+              </li>
             </ul>
           </li>
-          <li><strong>Integrity:</strong> Purchase-time price locking on <code>order_items</code> ensures historical accounting accuracy regardless of future kit price adjustments.</li>
+          <li><strong>Integrity:</strong> Purchase-time price locking on <code>order_items</code> ensures historical
+            accounting accuracy regardless of future kit price adjustments.</li>
         </ul>
       </div>
       <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "Our schema combines strict relational constraints for orders with flexible PostgreSQL JSONB columns for cooking scripts and ingredient manifests."
+        <strong>Speaker Notes:</strong> "Our schema combines strict relational constraints for orders with flexible
+        PostgreSQL JSONB columns for cooking scripts and ingredient manifests."
       </div>
     </div>
 
@@ -383,15 +433,21 @@ Supabase PaaS (PostgreSQL 15)
       <h2 class="slide-heading">Kernel-Level Row Level Security (RLS)</h2>
       <div class="slide-content">
         <ul>
-          <li><strong>Database Engine Defense:</strong> Authorization policies are executed inside the PostgreSQL database engine, not just in web application middleware.</li>
-          <li><strong>Customer Isolation:</strong> <code>SELECT / INSERT</code> on <code>orders</code> and <code>addresses</code> restricted strictly to <code>auth.uid() = user_id</code>.</li>
-          <li><strong>Driver Isolation:</strong> Drivers can only access orders assigned to their fleet ID (<code>auth.uid() = driver_id</code>).</li>
-          <li><strong>Admin Access:</strong> System-wide operations verified via <code>is_admin()</code> SECURITY DEFINER functions.</li>
-          <li><strong>Public Access:</strong> Unauthenticated users can only view available meal kits and category information.</li>
+          <li><strong>Database Engine Defense:</strong> Authorization policies are executed inside the PostgreSQL
+            database engine, not just in web application middleware.</li>
+          <li><strong>Customer Isolation:</strong> <code>SELECT / INSERT</code> on <code>orders</code> and
+            <code>addresses</code> restricted strictly to <code>auth.uid() = user_id</code>.</li>
+          <li><strong>Driver Isolation:</strong> Drivers can only access orders assigned to their fleet ID
+            (<code>auth.uid() = driver_id</code>).</li>
+          <li><strong>Admin Access:</strong> System-wide operations verified via <code>is_admin()</code> SECURITY
+            DEFINER functions.</li>
+          <li><strong>Public Access:</strong> Unauthenticated users can only view available meal kits and category
+            information.</li>
         </ul>
       </div>
       <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "RLS guarantees that even if a client-side API call is tampered with, PostgreSQL rejects unauthorized row queries at the database kernel level."
+        <strong>Speaker Notes:</strong> "RLS guarantees that even if a client-side API call is tampered with, PostgreSQL
+        rejects unauthorized row queries at the database kernel level."
       </div>
     </div>
 
@@ -403,19 +459,23 @@ Supabase PaaS (PostgreSQL 15)
         <div class="grid-2">
           <div class="info-box">
             <h4>Traditional Polling Overhead</h4>
-            <p>Client polls every 3s &rarr; 1,200 requests/hour/user &rarr; Server connection thrashing, high battery drain, and redundant payload transfers.</p>
+            <p>Client polls every 3s &rarr; 1,200 requests/hour/user &rarr; Server connection thrashing, high battery
+              drain, and redundant payload transfers.</p>
           </div>
           <div class="info-box">
             <h4>Supabase Change Data Capture</h4>
-            <p>Driver updates GPS fix &rarr; PostgreSQL WAL log emits event &rarr; WebSocket pushes coordinates to subscribed customers in <strong>~65ms</strong>.</p>
+            <p>Driver updates GPS fix &rarr; PostgreSQL WAL log emits event &rarr; WebSocket pushes coordinates to
+              subscribed customers in <strong>~65ms</strong>.</p>
           </div>
         </div>
         <div style="margin-top: 16px;">
-          <p><strong>Throttled Location Streaming:</strong> The Flutter driver client throttles GPS coordinates to 5–10 second intervals during transit, balancing real-time map accuracy with mobile battery conservation.</p>
+          <p><strong>Throttled Location Streaming:</strong> The Flutter driver client throttles GPS coordinates to 5–10
+            second intervals during transit, balancing real-time map accuracy with mobile battery conservation.</p>
         </div>
       </div>
       <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "Our real-time pipeline uses PostgreSQL Change Data Capture over persistent WebSockets, cutting bandwidth by over 90% compared to legacy HTTP polling."
+        <strong>Speaker Notes:</strong> "Our real-time pipeline uses PostgreSQL Change Data Capture over persistent
+        WebSockets, cutting bandwidth by over 90% compared to legacy HTTP polling."
       </div>
     </div>
 
@@ -425,20 +485,25 @@ Supabase PaaS (PostgreSQL 15)
       <h2 class="slide-heading">Deno Serverless Edge Functions (FaaS)</h2>
       <div class="slide-content">
         <ul>
-          <li><strong>Execution Model:</strong> Event-driven, auto-scaling serverless functions deployed to geographically distributed edge nodes.</li>
+          <li><strong>Execution Model:</strong> Event-driven, auto-scaling serverless functions deployed to
+            geographically distributed edge nodes.</li>
           <li><strong>Key Functions Implemented:</strong>
             <ul>
-              <li><code>create-order</code>: Recalculates cart subtotals server-side to prevent client price tampering.</li>
-              <li><code>update-order-status</code>: Validates allowed state transitions (Placed &rarr; Confirmed &rarr; Packaging &rarr; En Route &rarr; Delivered).</li>
+              <li><code>create-order</code>: Recalculates cart subtotals server-side to prevent client price tampering.
+              </li>
+              <li><code>update-order-status</code>: Validates allowed state transitions (Placed &rarr; Confirmed &rarr;
+                Packaging &rarr; En Route &rarr; Delivered).</li>
               <li><code>assign-driver</code>: Dispatches available online drivers based on proximity.</li>
               <li><code>send-notification</code>: Emits cross-platform dispatch alerts.</li>
             </ul>
           </li>
-          <li><strong>Advantages:</strong> Sub-50ms cold starts, zero idle compute charges, and strict sandboxed execution.</li>
+          <li><strong>Advantages:</strong> Sub-50ms cold starts, zero idle compute charges, and strict sandboxed
+            execution.</li>
         </ul>
       </div>
       <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "Serverless Edge Functions handle trusted business operations. They eliminate client privilege escalation risks and scale automatically from 0 to thousands of requests."
+        <strong>Speaker Notes:</strong> "Serverless Edge Functions handle trusted business operations. They eliminate
+        client privilege escalation risks and scale automatically from 0 to thousands of requests."
       </div>
     </div>
 
@@ -461,14 +526,16 @@ Supabase PaaS (PostgreSQL 15)
             <h4>Architecture & Quality</h4>
             <ul>
               <li><strong>State Management:</strong> Provider pattern.</li>
-              <li><strong>Resilience:</strong> Offline simulation fallback if cellular reception drops in transit corridors.</li>
+              <li><strong>Resilience:</strong> Offline simulation fallback if cellular reception drops in transit
+                corridors.</li>
               <li><strong>Automated Testing:</strong> 100% test pass rate on Flutter widget tests.</li>
             </ul>
           </div>
         </div>
       </div>
       <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "The driver application runs natively on Android, capturing GPS coordinates and synchronizing order fulfillment states directly with the cloud database."
+        <strong>Speaker Notes:</strong> "The driver application runs natively on Android, capturing GPS coordinates and
+        synchronizing order fulfillment states directly with the cloud database."
       </div>
     </div>
 
@@ -478,8 +545,10 @@ Supabase PaaS (PostgreSQL 15)
       <h2 class="slide-heading">Scalability, Caching & Cost Optimization</h2>
       <div class="slide-content">
         <ul>
-          <li><strong>Connection Pooling:</strong> PgBouncer multiplexes thousands of client connections onto a compact PostgreSQL connection pool, preventing connection exhaustion.</li>
-          <li><strong>Asset Optimization:</strong> Modern responsive WebP photography and lightweight SVG icons ensure sub-1.2s First Contentful Paint (FCP).</li>
+          <li><strong>Connection Pooling:</strong> PgBouncer multiplexes thousands of client connections onto a compact
+            PostgreSQL connection pool, preventing connection exhaustion.</li>
+          <li><strong>Asset Optimization:</strong> Modern responsive WebP photography and lightweight SVG icons ensure
+            sub-1.2s First Contentful Paint (FCP).</li>
           <li><strong>Zero-Cost Architecture:</strong>
             <ul>
               <li>Supabase Free Tier covers 50,000 monthly active users and 500MB storage.</li>
@@ -490,7 +559,8 @@ Supabase PaaS (PostgreSQL 15)
         </ul>
       </div>
       <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "HomeVibes demonstrates intelligent cloud economics: connection pooling prevents database crash under load, while open-source mapping eliminates cloud billing overhead."
+        <strong>Speaker Notes:</strong> "HomeVibes demonstrates intelligent cloud economics: connection pooling prevents
+        database crash under load, while open-source mapping eliminates cloud billing overhead."
       </div>
     </div>
 
@@ -500,15 +570,20 @@ Supabase PaaS (PostgreSQL 15)
       <h2 class="slide-heading">Live Demonstration Highlights</h2>
       <div class="slide-content">
         <ul>
-          <li><strong>Indian Meal Kits Catalog:</strong> 8 authentic kits with prices in ₹ (Biryani ₹349, Paneer Butter Masala ₹249, Chettinad Chicken ₹329, Naan ₹149, Gulab Jamun ₹179).</li>
-          <li><strong>Recipe & Script Modal:</strong> Displays sealed raw material manifests and 4-step chef instructions.</li>
-          <li><strong>Cart & Checkout:</strong> Real-time subtotal in ₹, ₹40 hub delivery fee, and UPI/COD payment options.</li>
+          <li><strong>Indian Meal Kits Catalog:</strong> 8 authentic kits with prices in ₹ (Biryani ₹349, Paneer Butter
+            Masala ₹249, Chettinad Chicken ₹329, Naan ₹149, Gulab Jamun ₹179).</li>
+          <li><strong>Recipe & Script Modal:</strong> Displays sealed raw material manifests and 4-step chef
+            instructions.</li>
+          <li><strong>Cart & Checkout:</strong> Real-time subtotal in ₹, ₹40 hub delivery fee, and UPI/COD payment
+            options.</li>
           <li><strong>Live Telemetry:</strong> Leaflet map displays moving vehicle markers and live order progress.</li>
-          <li><strong>Admin Dashboard:</strong> Revenue summaries in ₹, active orders tallying, and live order management.</li>
+          <li><strong>Admin Dashboard:</strong> Revenue summaries in ₹, active orders tallying, and live order
+            management.</li>
         </ul>
       </div>
       <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "Here we present the live operational product. Notice the clean professional aesthetic, absence of emojis, and authentic Indian recipes with full cooking scripts."
+        <strong>Speaker Notes:</strong> "Here we present the live operational product. Notice the clean professional
+        aesthetic, absence of emojis, and authentic Indian recipes with full cooking scripts."
       </div>
     </div>
 
@@ -519,19 +594,24 @@ Supabase PaaS (PostgreSQL 15)
       <div class="slide-content">
         <div class="info-box" style="margin-bottom: 12px;">
           <h4>Q1: Why choose PaaS over an EC2 monolith VM?</h4>
-          <p><strong>A:</strong> Self-hosting requires manual OS patching, cluster replication, and backup configuration. Supabase PaaS provides automated scaling, high availability, and built-in WebSocket replication out of the box.</p>
+          <p><strong>A:</strong> Self-hosting requires manual OS patching, cluster replication, and backup
+            configuration. Supabase PaaS provides automated scaling, high availability, and built-in WebSocket
+            replication out of the box.</p>
         </div>
         <div class="info-box" style="margin-bottom: 12px;">
           <h4>Q2: How does Row Level Security prevent data tampering?</h4>
-          <p><strong>A:</strong> RLS applies authorization rules at the PostgreSQL storage engine level. Even if a user crafts a direct SQL query, rows not owned by that user are completely hidden from the result set.</p>
+          <p><strong>A:</strong> RLS applies authorization rules at the PostgreSQL storage engine level. Even if a user
+            crafts a direct SQL query, rows not owned by that user are completely hidden from the result set.</p>
         </div>
         <div class="info-box">
           <h4>Q3: Why use WebSockets over HTTP polling for GPS tracking?</h4>
-          <p><strong>A:</strong> WebSockets eliminate repetitive TCP/TLS handshake and header overhead (saving ~800 bytes per request), reducing mobile battery drain and latency to under 100ms.</p>
+          <p><strong>A:</strong> WebSockets eliminate repetitive TCP/TLS handshake and header overhead (saving ~800
+            bytes per request), reducing mobile battery drain and latency to under 100ms.</p>
         </div>
       </div>
       <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "These three questions address the core architectural decisions of our cloud implementation."
+        <strong>Speaker Notes:</strong> "These three questions address the core architectural decisions of our cloud
+        implementation."
       </div>
     </div>
 
@@ -553,8 +633,10 @@ Supabase PaaS (PostgreSQL 15)
           <div class="info-box">
             <h4>Future Research & Roadmap</h4>
             <ul>
-              <li><strong>Predictive ML:</strong> Demand forecasting for raw material vendor hubs to minimize food waste.</li>
-              <li><strong>IoT Cold Chain:</strong> Bluetooth temperature sensors in delivery bags to monitor raw meat freshness.</li>
+              <li><strong>Predictive ML:</strong> Demand forecasting for raw material vendor hubs to minimize food
+                waste.</li>
+              <li><strong>IoT Cold Chain:</strong> Bluetooth temperature sensors in delivery bags to monitor raw meat
+                freshness.</li>
               <li><strong>Multi-Region DB:</strong> Read-replicas across Mumbai and Singapore AWS regions.</li>
             </ul>
           </div>
@@ -564,7 +646,8 @@ Supabase PaaS (PostgreSQL 15)
         </div>
       </div>
       <div class="speaker-notes-drawer">
-        <strong>Speaker Notes:</strong> "Thank you professors for your time and guidance. We are now open for technical questions and examination."
+        <strong>Speaker Notes:</strong> "Thank you professors for your time and guidance. We are now open for technical
+        questions and examination."
       </div>
     </div>
 
@@ -615,4 +698,5 @@ Supabase PaaS (PostgreSQL 15)
     });
   </script>
 </body>
+
 </html>

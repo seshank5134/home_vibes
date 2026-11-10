@@ -22,7 +22,7 @@ function createStaticServer(rootFolder, port, name) {
     if (reqPath === '/') reqPath = '/index.html';
 
     let filePath;
-    if (reqPath.startsWith('/customer-web/') || reqPath.startsWith('/driver-app/') || reqPath.startsWith('/admin-web/')) {
+    if (reqPath.startsWith('/customer-web/') || reqPath.startsWith('/driver-app/') || reqPath.startsWith('/admin-web/') || reqPath.startsWith('/docs/') || reqPath.startsWith('/driver-web/')) {
       filePath = path.join(__dirname, reqPath);
     } else {
       filePath = path.join(rootFolder, reqPath);
